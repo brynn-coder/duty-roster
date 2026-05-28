@@ -1281,22 +1281,25 @@
 
   .modal .color-picks {
     display: flex;
-    gap: 8px;
+    gap: 7px;
     margin-bottom: 12px;
     flex-wrap: wrap;
   }
 
   .modal .color-pick {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 3px solid transparent;
+    border: 2px solid rgba(74,84,105,0.12);
     cursor: pointer;
     transition: border-color 0.2s, transform 0.15s;
   }
 
   .modal .color-pick:hover { transform: scale(1.15); }
-  .modal .color-pick.selected { border-color: #333; }
+  .modal .color-pick.selected {
+    border-color: #4a5469;
+    box-shadow: 0 0 0 2px rgba(74,84,105,0.16);
+  }
 
   .modal label {
     display: block;
@@ -1614,7 +1617,12 @@ const SUPABASE_RECORD_ID = SYNC_CONFIG.recordId || 'main';
 const PALETTE = [
   '#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#2ecc71',
   '#1abc9c', '#3498db', '#4a5469', '#8e44ad', '#e84393',
-  '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031'
+  '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031',
+  '#7d8c84', '#9aa58f', '#b7ad9a', '#c6b8a6', '#a69f98',
+  '#8f9aa7', '#aeb8c2', '#b9a7a0', '#c9aaa5', '#d8c7bd',
+  '#b7a58d', '#c8b69d', '#d6c2a8', '#e2d2bd', '#a88972',
+  '#f2eadf', '#ded6cc', '#c5bdb3', '#8b8580', '#2f3437',
+  '#111827', '#374151', '#6b7280', '#9ca3af', '#f8fafc'
 ];
 const DAY_NAMES = ['週一', '週二', '週三', '週四', '週五'];
 const DEFAULT_MEMBERS = ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'];
