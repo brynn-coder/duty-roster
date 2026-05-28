@@ -1385,55 +1385,38 @@
 
   .modal .color-picker-error.show { display: block; }
 
-  .modal .color-palette-meta {
+  .modal .color-group {
+    margin-top: 12px;
+  }
+
+  .modal .color-group:first-of-type {
+    margin-top: 0;
+  }
+
+  .modal .color-group-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    border-top: 1px solid rgba(214,219,228,0.9);
-    margin-top: 12px;
-    padding-top: 10px;
+    color: #7886a3;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 8px;
   }
 
   .modal .custom-color-count {
     color: #7886a3;
-    font-size: 0.78rem;
+    font-size: 0.76rem;
+    font-weight: 500;
   }
 
-  .modal .delete-color-toggle {
-    border: 1px solid rgba(192,57,43,0.18);
-    border-radius: 999px;
+  .modal .empty-custom-colors {
+    color: #9aa5b5;
     background: #fff;
-    color: #a93226;
-    cursor: pointer;
-    font-size: 0.78rem;
-    font-weight: 700;
-    padding: 7px 12px;
-  }
-
-  .modal .delete-color-toggle:disabled {
-    color: #afb7ca;
-    border-color: #d6dbe4;
-    cursor: not-allowed;
-  }
-
-  .modal .delete-color-toggle.active {
-    background: #fff1ef;
-    border-color: rgba(192,57,43,0.35);
-  }
-
-  .modal .color-delete-hint {
-    display: none;
+    border: 1px dashed #d6dbe4;
     border-radius: 12px;
-    font-size: 0.78rem;
-    margin-top: 8px;
-    padding: 9px 10px;
-  }
-
-  .modal .color-delete-hint.show {
-    display: block;
-    background: #fff8f6;
-    color: #9f3a2d;
+    font-size: 0.8rem;
+    padding: 10px 12px;
   }
 
   .modal .color-picks {
@@ -1455,50 +1438,12 @@
 
   .modal .color-pick:hover { transform: translateY(-1px); }
 
-  .modal .color-pick.custom-color::before {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(74,84,105,0.16);
-  }
-
-  .modal .color-picker-panel.delete-mode .color-pick {
-    opacity: 0.45;
-  }
-
-  .modal .color-picker-panel.delete-mode .color-pick.custom-color {
-    opacity: 1;
-    box-shadow: 0 0 0 2px rgba(192,57,43,0.12);
-  }
-
-  .modal .color-picker-panel.delete-mode .color-pick.custom-color::after {
-    content: '×';
-    display: grid;
-    place-items: center;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    background: #c0392b;
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1;
-    position: absolute;
-    right: -4px;
-    top: -4px;
-  }
-
   .modal .color-pick.selected {
     border-color: #4a5469;
     box-shadow: 0 0 0 3px rgba(74,84,105,0.16);
   }
 
-  .modal .color-picker-panel:not(.delete-mode) .color-pick.selected::after {
+  .modal .color-pick.selected::after {
     content: '';
     width: 8px;
     height: 8px;
@@ -1508,6 +1453,42 @@
     position: absolute;
     right: 3px;
     bottom: 3px;
+  }
+
+  .modal .custom-color-item {
+    position: relative;
+    justify-self: center;
+    width: 34px;
+    height: 34px;
+  }
+
+  .modal .custom-color-item .color-pick {
+    width: 100%;
+    height: 100%;
+  }
+
+  .modal .delete-custom-color {
+    position: absolute;
+    right: -7px;
+    top: -7px;
+    width: 19px;
+    height: 19px;
+    border: 2px solid #f8fafc;
+    border-radius: 50%;
+    background: #fff;
+    color: #a93226;
+    cursor: pointer;
+    display: grid;
+    font-size: 0.78rem;
+    font-weight: 900;
+    line-height: 1;
+    place-items: center;
+    box-shadow: 0 3px 8px rgba(74,84,105,0.18);
+  }
+
+  .modal .delete-custom-color:hover {
+    background: #c0392b;
+    color: #fff;
   }
 
   .modal label {
@@ -1719,8 +1700,6 @@
     .section-head { align-items: flex-start; flex-direction: column; }
     .modal .color-picker-tools { grid-template-columns: 1fr; }
     .modal .add-color-btn { width: 100%; }
-    .modal .color-palette-meta { align-items: stretch; flex-direction: column; }
-    .modal .delete-color-toggle { width: 100%; }
   }
 </style>
 </head>
@@ -1828,14 +1807,13 @@ const SYNC_CONFIG = window.DUTY_ROSTER_CONFIG || {};
 const SUPABASE_TABLE = SYNC_CONFIG.tableName || 'duty_roster_state';
 const SUPABASE_RECORD_ID = SYNC_CONFIG.recordId || 'main';
 const PALETTE = [
-  '#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#2ecc71',
+  '#e74c3c', '#e67e22', '#f1c40f', '#27ae60',
   '#1abc9c', '#3498db', '#4a5469', '#8e44ad', '#e84393',
-  '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031',
-  '#7d8c84', '#9aa58f', '#b7ad9a', '#c6b8a6', '#a69f98',
-  '#8f9aa7', '#aeb8c2', '#b9a7a0', '#c9aaa5', '#d8c7bd',
+  '#6c5ce7', '#fd79a8',
+  '#7d8c84', '#9aa58f', '#b7ad9a', '#c6b8a6',
+  '#8f9aa7', '#b9a7a0', '#c9aaa5',
   '#c8b69d', '#d6c2a8', '#a88972',
-  '#f2eadf', '#ded6cc', '#c5bdb3', '#8b8580', '#2f3437',
-  '#111827', '#374151', '#6b7280', '#9ca3af', '#f8fafc'
+  '#111827', '#6b7280', '#f8fafc'
 ];
 const DAY_NAMES = ['週一', '週二', '週三', '週四', '週五'];
 const DEFAULT_MEMBERS = ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'];
@@ -2627,12 +2605,20 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
       <button type="button" class="add-color-btn" data-add-color>新增色票</button>
     </div>
     <div class="color-picker-error" data-color-error>請輸入正確色號，例如 #AABBCC 或 ABC。</div>
-    <div class="color-picks" data-color-picks></div>
-    <div class="color-palette-meta">
-      <span class="custom-color-count" data-custom-color-count></span>
-      <button type="button" class="delete-color-toggle" data-delete-color-toggle>刪除顏色</button>
+    <div class="color-group">
+      <div class="color-group-title">
+        <span>預設色票</span>
+        <span>${PALETTE.length} 色</span>
+      </div>
+      <div class="color-picks" data-default-color-picks></div>
     </div>
-    <div class="color-delete-hint" data-delete-hint>刪除模式已開啟。點自訂色票後，確認一次就會刪除。</div>
+    <div class="color-group">
+      <div class="color-group-title">
+        <span>自訂色票</span>
+        <span class="custom-color-count" data-custom-color-count></span>
+      </div>
+      <div class="color-picks" data-custom-color-picks></div>
+    </div>
   `;
 
   const previewEl = panelEl.querySelector('[data-color-preview]');
@@ -2640,11 +2626,9 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
   const nativeInput = panelEl.querySelector('[data-native-color]');
   const hexInput = panelEl.querySelector('[data-hex-color]');
   const errorEl = panelEl.querySelector('[data-color-error]');
-  const swatchesEl = panelEl.querySelector('[data-color-picks]');
+  const defaultSwatchesEl = panelEl.querySelector('[data-default-color-picks]');
+  const customSwatchesEl = panelEl.querySelector('[data-custom-color-picks]');
   const customCountEl = panelEl.querySelector('[data-custom-color-count]');
-  const deleteToggleEl = panelEl.querySelector('[data-delete-color-toggle]');
-  const deleteHintEl = panelEl.querySelector('[data-delete-hint]');
-  let deleteMode = false;
 
   function syncSelection(color, shouldNotify = true) {
     const hex = normalizeHexColor(color);
@@ -2655,7 +2639,7 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     nativeInput.value = hex;
     hexInput.value = hex.replace('#', '');
     errorEl.classList.remove('show');
-    swatchesEl.querySelectorAll('.color-pick').forEach(dot => {
+    panelEl.querySelectorAll('.color-pick').forEach(dot => {
       dot.classList.toggle('selected', dot.dataset.color === hex);
     });
     if (shouldNotify) onSelect(hex);
@@ -2663,39 +2647,57 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
   }
 
   function renderSwatches() {
-    swatchesEl.innerHTML = '';
-    const customColors = new Set(normalizeCustomColors(data.customColors));
-    getAvailablePalette().forEach(color => {
-      const isCustomColor = customColors.has(color);
+    defaultSwatchesEl.innerHTML = '';
+    PALETTE.forEach(color => {
       const dot = document.createElement('button');
       dot.type = 'button';
-      dot.className = 'color-pick' + (isCustomColor ? ' custom-color' : '');
+      dot.className = 'color-pick';
       dot.dataset.color = color;
-      dot.dataset.custom = isCustomColor ? 'true' : 'false';
       dot.style.background = color;
-      dot.title = isCustomColor ? `${color}，自訂色票` : color;
-      dot.setAttribute('aria-label', isCustomColor ? `選擇自訂色票 ${color}` : `選擇 ${color}`);
-      dot.onclick = () => {
-        if (deleteMode) {
-          if (isCustomColor) deleteCustomColor(color);
-          return;
-        }
-        syncSelection(color);
-      };
-      swatchesEl.appendChild(dot);
+      dot.title = color;
+      dot.setAttribute('aria-label', `選擇 ${color}`);
+      dot.onclick = () => syncSelection(color);
+      defaultSwatchesEl.appendChild(dot);
     });
-    updateDeleteTools();
-    syncSelection(selectedColor, false);
-  }
 
-  function updateDeleteTools() {
-    const customCount = normalizeCustomColors(data.customColors).length;
-    customCountEl.textContent = customCount ? `自訂色票 ${customCount} 個` : '尚未新增自訂色票';
-    deleteToggleEl.disabled = customCount === 0;
-    deleteToggleEl.classList.toggle('active', deleteMode);
-    deleteToggleEl.textContent = deleteMode ? '結束刪除' : '刪除顏色';
-    panelEl.classList.toggle('delete-mode', deleteMode);
-    deleteHintEl.classList.toggle('show', deleteMode);
+    customSwatchesEl.innerHTML = '';
+    const customColors = normalizeCustomColors(data.customColors);
+    customCountEl.textContent = customColors.length ? `${customColors.length} 色` : '尚未新增';
+    if (!customColors.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-custom-colors';
+      empty.textContent = '輸入色號或用選色器挑色，再按新增色票。';
+      customSwatchesEl.appendChild(empty);
+    } else {
+      customColors.forEach(color => {
+        const item = document.createElement('div');
+        item.className = 'custom-color-item';
+
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'color-pick';
+        dot.dataset.color = color;
+        dot.style.background = color;
+        dot.title = `${color}，自訂色票`;
+        dot.setAttribute('aria-label', `選擇自訂色票 ${color}`);
+        dot.onclick = () => syncSelection(color);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'delete-custom-color';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.title = `刪除 ${color}`;
+        deleteBtn.setAttribute('aria-label', `刪除自訂色票 ${color}`);
+        deleteBtn.onclick = e => {
+          e.stopPropagation();
+          deleteCustomColor(color);
+        };
+
+        item.append(dot, deleteBtn);
+        customSwatchesEl.appendChild(item);
+      });
+    }
+    syncSelection(selectedColor, false);
   }
 
   function deleteCustomColor(color) {
@@ -2703,7 +2705,6 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     if (!hex) return;
     if (!confirm(`確定要刪除自訂色票 ${hex} 嗎？`)) return;
     if (forgetCustomColor(hex)) saveData();
-    if (!normalizeCustomColors(data.customColors).length) deleteMode = false;
     renderSwatches();
   }
 
@@ -2716,7 +2717,6 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     }
     rememberCustomColor(hex);
     saveData();
-    deleteMode = false;
     renderSwatches();
     syncSelection(hex);
   }
@@ -2731,10 +2731,6 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     if (e.key === 'Enter') addCurrentColor();
   });
   panelEl.querySelector('[data-add-color]').addEventListener('click', addCurrentColor);
-  deleteToggleEl.addEventListener('click', () => {
-    deleteMode = !deleteMode;
-    updateDeleteTools();
-  });
 
   renderSwatches();
 }
