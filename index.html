@@ -2429,6 +2429,20 @@ function getColor(name) {
   return data.colors[name] || '#7886a3';
 }
 
+function getReadableTextColor(backgroundColor) {
+  const hex = normalizeHexColor(backgroundColor) || '#7886A3';
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness >= 238 ? '#4a5469' : '#fff';
+}
+
+function getMemberColorStyle(name) {
+  const color = getColor(name);
+  return `background:${color};color:${getReadableTextColor(color)}`;
+}
+
 function calcStats() {
   const stats = {};
   data.members.forEach(m => {
@@ -2537,7 +2551,7 @@ function renderMembersBar() {
     chip.className = 'member-chip';
     chip.onclick = () => openEditMemberModal(m);
     chip.innerHTML = `
-      <div class="chip-dot" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
+      <div class="chip-dot" style="${getMemberColorStyle(m)}">${escapeHtml(m[0])}</div>
       ${escapeHtml(m)}
       <button class="remove-member" onclick="event.stopPropagation(); removeMember(decodeURIComponent('${encodeInline(m)}'))" title="刪除 ${escapeHtml(m)}">&times;</button>
     `;
@@ -2883,7 +2897,7 @@ function renderDutyOverview() {
           <span class="monthly-duty-label">本月負責</span>
           ${monthlyPeople.map(name => `
             <span class="monthly-duty-chip">
-              <span class="tiny-avatar" style="background:${getColor(name)}">${escapeHtml(name[0])}</span>
+              <span class="tiny-avatar" style="${getMemberColorStyle(name)}">${escapeHtml(name[0])}</span>
               ${escapeHtml(name)}
             </span>
           `).join('')}
@@ -2940,7 +2954,7 @@ function renderAssignmentCard(label, person, note, variant = '') {
     <div class="assignment-card ${variant}">
       <div class="assignment-label">${escapeHtml(label)}</div>
       <div class="assignment-person">
-        <span class="tiny-avatar" style="background:${getColor(person)}">${escapeHtml(person ? person[0] : '?')}</span>
+        <span class="tiny-avatar" style="${getMemberColorStyle(person)}">${escapeHtml(person ? person[0] : '?')}</span>
         <span>${escapeHtml(person || '未排定')}</span>
       </div>
       <div class="assignment-note">${escapeHtml(note)}</div>
@@ -3034,7 +3048,7 @@ function renderCalendarView(container, dates) {
     cell.onclick = () => openDayManage(ds, original);
 
     let html = `<span class="cal-date">${d.getDate()}</span>`;
-    html += `<div class="cal-avatar" style="background:${getColor(displayPerson)}">${escapeHtml(displayPerson ? displayPerson[0] : '?')}</div>`;
+    html += `<div class="cal-avatar" style="${getMemberColorStyle(displayPerson)}">${escapeHtml(displayPerson ? displayPerson[0] : '?')}</div>`;
 
     if (isOnLeave && sub) {
       html += `<span class="cal-name on-leave">${escapeHtml(original)}</span>`;
@@ -3127,7 +3141,7 @@ function renderSchedule() {
       <div class="day-name">${DAY_NAMES[d.getDay() - 1]}</div>
       <div class="day-date">${formatShort(d)}</div>
       <div class="full-date">${formatLongDate(d)}</div>
-      <div class="avatar" style="background:${getColor(displayPerson)}">${escapeHtml(initial)}</div>
+      <div class="avatar" style="${getMemberColorStyle(displayPerson)}">${escapeHtml(initial)}</div>
       ${bodyHtml}
       <div class="actions">${actionsHtml}</div>
     `;
@@ -3158,7 +3172,7 @@ function renderStats() {
     }
 
     card.innerHTML = `
-      <div class="stat-avatar" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
+      <div class="stat-avatar" style="${getMemberColorStyle(m)}">${escapeHtml(m[0])}</div>
       <div class="stat-name">${escapeHtml(m)}</div>
       <div class="stat-row">應值 <span>${s.assigned}</span></div>
       <div class="stat-row">實值 <span>${s.actual}</span></div>
@@ -3403,7 +3417,7 @@ function openChangeAssignment(dateStr, currentPerson) {
     const item = document.createElement('div');
     item.className = 'pick-item';
     item.innerHTML = `
-      <div class="mini-avatar" style="background:${getColor(name)}">${escapeHtml(name[0])}</div>
+      <div class="mini-avatar" style="${getMemberColorStyle(name)}">${escapeHtml(name[0])}</div>
       <span class="pick-name">${escapeHtml(name)}</span>
       <span class="pick-hint">改派給此人</span>
     `;
@@ -3466,7 +3480,7 @@ function requestLeave(dateStr, person) {
     const item = document.createElement('div');
     item.className = 'pick-item' + (isRec ? ' recommended' : '');
     item.innerHTML = `
-      <div class="mini-avatar" style="background:${getColor(c.name)}">${escapeHtml(c.name[0])}</div>
+      <div class="mini-avatar" style="${getMemberColorStyle(c.name)}">${escapeHtml(c.name[0])}</div>
       <span class="pick-name">${escapeHtml(c.name)}</span>
       <span class="pick-hint">${c.owe > 0 ? `欠 ${c.owe} 次` : c.owe < 0 ? `多值 ${Math.abs(c.owe)} 次` : '持平'}${isRec ? ' ⭐ 推薦' : ''}</span>
     `;
