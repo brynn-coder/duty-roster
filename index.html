@@ -1422,8 +1422,7 @@
     border-color: rgba(192,57,43,0.35);
   }
 
-  .modal .color-delete-hint,
-  .modal .color-delete-confirm {
+  .modal .color-delete-hint {
     display: none;
     border-radius: 12px;
     font-size: 0.78rem;
@@ -1436,39 +1435,6 @@
     background: #fff8f6;
     color: #9f3a2d;
   }
-
-  .modal .color-delete-confirm.show {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    background: #fff;
-    border: 1px solid rgba(192,57,43,0.18);
-    color: #4a5469;
-  }
-
-  .modal .color-delete-confirm strong {
-    color: #a93226;
-    letter-spacing: 0.02em;
-  }
-
-  .modal .color-delete-actions {
-    display: flex;
-    gap: 6px;
-    flex-shrink: 0;
-  }
-
-  .modal .color-delete-actions button {
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: 0.76rem;
-    font-weight: 700;
-    padding: 7px 10px;
-  }
-
-  .modal .cancel-delete-color { background: #edf0f5; color: #4a5469; }
-  .modal .confirm-delete-color { background: #c0392b; color: #fff; }
 
   .modal .color-picks {
     display: grid;
@@ -1753,11 +1719,8 @@
     .section-head { align-items: flex-start; flex-direction: column; }
     .modal .color-picker-tools { grid-template-columns: 1fr; }
     .modal .add-color-btn { width: 100%; }
-    .modal .color-palette-meta,
-    .modal .color-delete-confirm { align-items: stretch; flex-direction: column; }
-    .modal .delete-color-toggle,
-    .modal .color-delete-actions,
-    .modal .color-delete-actions button { width: 100%; }
+    .modal .color-palette-meta { align-items: stretch; flex-direction: column; }
+    .modal .delete-color-toggle { width: 100%; }
   }
 </style>
 </head>
@@ -1870,7 +1833,7 @@ const PALETTE = [
   '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031',
   '#7d8c84', '#9aa58f', '#b7ad9a', '#c6b8a6', '#a69f98',
   '#8f9aa7', '#aeb8c2', '#b9a7a0', '#c9aaa5', '#d8c7bd',
-  '#b7a58d', '#c8b69d', '#d6c2a8', '#e2d2bd', '#a88972',
+  '#c8b69d', '#d6c2a8', '#a88972',
   '#f2eadf', '#ded6cc', '#c5bdb3', '#8b8580', '#2f3437',
   '#111827', '#374151', '#6b7280', '#9ca3af', '#f8fafc'
 ];
@@ -2669,14 +2632,7 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
       <span class="custom-color-count" data-custom-color-count></span>
       <button type="button" class="delete-color-toggle" data-delete-color-toggle>刪除顏色</button>
     </div>
-    <div class="color-delete-hint" data-delete-hint>刪除模式已開啟。只有你新增的自訂色票可以刪除，點選色票後還需要再確認一次。</div>
-    <div class="color-delete-confirm" data-delete-confirm>
-      <span>確定刪除 <strong data-delete-color-value></strong> 嗎？</span>
-      <div class="color-delete-actions">
-        <button type="button" class="cancel-delete-color" data-cancel-delete-color>取消</button>
-        <button type="button" class="confirm-delete-color" data-confirm-delete-color>刪除</button>
-      </div>
-    </div>
+    <div class="color-delete-hint" data-delete-hint>刪除模式已開啟。點自訂色票後，確認一次就會刪除。</div>
   `;
 
   const previewEl = panelEl.querySelector('[data-color-preview]');
@@ -2688,10 +2644,7 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
   const customCountEl = panelEl.querySelector('[data-custom-color-count]');
   const deleteToggleEl = panelEl.querySelector('[data-delete-color-toggle]');
   const deleteHintEl = panelEl.querySelector('[data-delete-hint]');
-  const deleteConfirmEl = panelEl.querySelector('[data-delete-confirm]');
-  const deleteColorValueEl = panelEl.querySelector('[data-delete-color-value]');
   let deleteMode = false;
-  let pendingDeleteColor = '';
 
   function syncSelection(color, shouldNotify = true) {
     const hex = normalizeHexColor(color);
@@ -2724,7 +2677,7 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
       dot.setAttribute('aria-label', isCustomColor ? `選擇自訂色票 ${color}` : `選擇 ${color}`);
       dot.onclick = () => {
         if (deleteMode) {
-          if (isCustomColor) showDeleteConfirm(color);
+          if (isCustomColor) deleteCustomColor(color);
           return;
         }
         syncSelection(color);
@@ -2742,25 +2695,14 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     deleteToggleEl.classList.toggle('active', deleteMode);
     deleteToggleEl.textContent = deleteMode ? '結束刪除' : '刪除顏色';
     panelEl.classList.toggle('delete-mode', deleteMode);
-    deleteHintEl.classList.toggle('show', deleteMode && !pendingDeleteColor);
-    deleteConfirmEl.classList.toggle('show', Boolean(pendingDeleteColor));
+    deleteHintEl.classList.toggle('show', deleteMode);
   }
 
-  function showDeleteConfirm(color) {
-    pendingDeleteColor = normalizeHexColor(color);
-    deleteColorValueEl.textContent = pendingDeleteColor;
-    updateDeleteTools();
-  }
-
-  function cancelDeleteConfirm() {
-    pendingDeleteColor = '';
-    updateDeleteTools();
-  }
-
-  function deletePendingColor() {
-    if (!pendingDeleteColor) return;
-    if (forgetCustomColor(pendingDeleteColor)) saveData();
-    pendingDeleteColor = '';
+  function deleteCustomColor(color) {
+    const hex = normalizeHexColor(color);
+    if (!hex) return;
+    if (!confirm(`確定要刪除自訂色票 ${hex} 嗎？`)) return;
+    if (forgetCustomColor(hex)) saveData();
     if (!normalizeCustomColors(data.customColors).length) deleteMode = false;
     renderSwatches();
   }
@@ -2775,7 +2717,6 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
     rememberCustomColor(hex);
     saveData();
     deleteMode = false;
-    pendingDeleteColor = '';
     renderSwatches();
     syncSelection(hex);
   }
@@ -2792,11 +2733,8 @@ function renderColorPicks(containerId, selectedColor, onSelect) {
   panelEl.querySelector('[data-add-color]').addEventListener('click', addCurrentColor);
   deleteToggleEl.addEventListener('click', () => {
     deleteMode = !deleteMode;
-    pendingDeleteColor = '';
     updateDeleteTools();
   });
-  panelEl.querySelector('[data-cancel-delete-color]').addEventListener('click', cancelDeleteConfirm);
-  panelEl.querySelector('[data-confirm-delete-color]').addEventListener('click', deletePendingColor);
 
   renderSwatches();
 }
