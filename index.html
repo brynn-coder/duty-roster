@@ -224,9 +224,8 @@
 
   .duty-overview {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
-    gap: 14px;
-    margin: 0 auto 20px;
+    gap: 12px;
+    margin: 0 auto 18px;
     max-width: 920px;
   }
 
@@ -236,6 +235,10 @@
     border-radius: 14px;
     box-shadow: 0 8px 20px rgba(74,84,105,0.06);
     padding: 16px;
+  }
+
+  .current-panel {
+    background: linear-gradient(180deg, #fff 0%, #f7f8fb 100%);
   }
 
   .duty-panel h2 {
@@ -248,8 +251,8 @@
     border-top: 1px solid #eef1f6;
     display: grid;
     gap: 10px;
-    grid-template-columns: 86px minmax(0, 1fr);
-    padding: 12px 0;
+    grid-template-columns: 104px minmax(0, 1fr);
+    padding: 10px 0;
   }
 
   .task-section:first-of-type {
@@ -272,7 +275,7 @@
   .task-section ul {
     color: #4a5469;
     font-size: 0.84rem;
-    line-height: 1.7;
+    line-height: 1.62;
     padding-left: 20px;
   }
 
@@ -280,8 +283,19 @@
     list-style: disc;
   }
 
+  .task-section.is-a ol {
+    columns: 2;
+    column-gap: 28px;
+  }
+
+  .task-section li {
+    break-inside: avoid;
+    margin-bottom: 2px;
+  }
+
   .assignment-stack {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
 
@@ -290,6 +304,12 @@
     border: 1px solid #e7eaf0;
     border-radius: 12px;
     padding: 12px;
+    min-height: 118px;
+  }
+
+  .assignment-card.primary {
+    border-color: rgba(74,84,105,0.28);
+    box-shadow: inset 0 3px 0 #4a5469;
   }
 
   .assignment-label {
@@ -330,6 +350,7 @@
   }
 
   .adhoc-btn {
+    align-self: flex-end;
     background: #4a5469;
     border: none;
     border-radius: 10px;
@@ -338,6 +359,7 @@
     font-size: 0.82rem;
     font-weight: 800;
     margin-top: 10px;
+    max-width: 220px;
     padding: 9px 12px;
     width: 100%;
   }
@@ -1271,7 +1293,11 @@
     .members-toggle { justify-content: center; width: 100%; }
     .duty-overview { grid-template-columns: 1fr; }
     .task-section { grid-template-columns: 1fr; }
+    .task-section.is-a ol { columns: 1; }
     .task-badge { justify-self: start; }
+    .assignment-stack { grid-template-columns: 1fr; }
+    .assignment-card { min-height: 0; }
+    .adhoc-btn { max-width: none; }
     .schedule { grid-template-columns: repeat(1, 1fr); }
     .section-head { align-items: flex-start; flex-direction: column; }
   }
@@ -2125,9 +2151,18 @@ function renderDutyOverview() {
   const lastAdHoc = data.adHocLog?.[data.adHocLog.length - 1];
 
   overview.innerHTML = `
-    <section class="duty-panel">
+    <section class="duty-panel current-panel">
+      <h2>目前輪值</h2>
+      <div class="assignment-stack">
+        ${renderAssignmentCard('本週值日生 A', weekPerson, '負責 1-11 項工作內容', 'primary')}
+        ${renderAssignmentCard('本月值日生 B', monthPerson, '負責清潔窗台、拖地')}
+        ${renderAssignmentCard('下一位不定時輪值', nextAdHocPerson, lastAdHoc ? `上次由 ${lastAdHoc.person} 完成` : '尚未記錄不定時事項')}
+      </div>
+      <button class="adhoc-btn" onclick="completeAdHocDuty()">記錄一次不定時事項</button>
+    </section>
+    <section class="duty-panel work-panel">
       <h2>工作內容</h2>
-      <div class="task-section">
+      <div class="task-section is-a">
         <div class="task-badge">值日生 A<br>每週一組</div>
         <ol>${DUTY_A_TASKS.map(task => `<li>${escapeHtml(task)}</li>`).join('')}</ol>
       </div>
@@ -2140,21 +2175,12 @@ function renderDutyOverview() {
         <ul>${ADHOC_TASKS.map(task => `<li>${escapeHtml(task)}</li>`).join('')}</ul>
       </div>
     </section>
-    <section class="duty-panel">
-      <h2>目前輪值</h2>
-      <div class="assignment-stack">
-        ${renderAssignmentCard('本週值日生 A', weekPerson, '負責 1-11 項工作內容')}
-        ${renderAssignmentCard('本月值日生 B', monthPerson, '負責清潔窗台、拖地')}
-        ${renderAssignmentCard('下一位不定時輪值', nextAdHocPerson, lastAdHoc ? `上次由 ${lastAdHoc.person} 完成` : '尚未記錄不定時事項')}
-      </div>
-      <button class="adhoc-btn" onclick="completeAdHocDuty()">記錄一次不定時事項</button>
-    </section>
   `;
 }
 
-function renderAssignmentCard(label, person, note) {
+function renderAssignmentCard(label, person, note, variant = '') {
   return `
-    <div class="assignment-card">
+    <div class="assignment-card ${variant}">
       <div class="assignment-label">${escapeHtml(label)}</div>
       <div class="assignment-person">
         <span class="tiny-avatar" style="background:${getColor(person)}">${escapeHtml(person ? person[0] : '?')}</span>
