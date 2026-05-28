@@ -2160,12 +2160,12 @@ function renderMembersBar() {
   }
   if (countText) countText.textContent = `(${data.members.length})`;
 
-  data.members.forEach((m, index) => {
+  data.members.forEach(m => {
     const chip = document.createElement('div');
     chip.className = 'member-chip';
     chip.innerHTML = `
       <div class="chip-dot" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
-      第 ${index + 1} 組 · ${escapeHtml(m)}
+      ${escapeHtml(m)}
     `;
     bar.appendChild(chip);
   });
