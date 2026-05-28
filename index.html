@@ -255,6 +255,33 @@
     margin-bottom: 8px;
   }
 
+  .work-panel-head-main {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .collapse-work-btn {
+    align-items: center;
+    background: #eef1f6;
+    border: 1px solid #d6dbe4;
+    border-radius: 9px;
+    color: #4a5469;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.9rem;
+    font-weight: 900;
+    height: 30px;
+    justify-content: center;
+    line-height: 1;
+    width: 30px;
+  }
+
+  .collapse-work-btn:hover {
+    background: #d6dbe4;
+  }
+
   .work-panel-head h2 {
     margin-bottom: 0;
   }
@@ -274,6 +301,33 @@
     background: #eef1f6;
     border-color: #7886a3;
     color: #4a5469;
+  }
+
+  .monthly-duty-people {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 2px 0 10px;
+  }
+
+  .monthly-duty-label {
+    color: #7886a3;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .monthly-duty-chip {
+    align-items: center;
+    background: #f7f8fb;
+    border: 1px solid #e7eaf0;
+    border-radius: 999px;
+    color: #4a5469;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 800;
+    gap: 6px;
+    padding: 5px 10px 5px 6px;
   }
 
   .task-section {
@@ -426,6 +480,10 @@
   .work-task-editor textarea:focus {
     border-color: #7886a3;
     box-shadow: 0 0 0 3px rgba(120,134,163,0.16);
+  }
+
+  .modal .work-task-editor + .modal-actions {
+    margin-top: 18px;
   }
 
   /* Month Navigation */
@@ -1492,6 +1550,7 @@ const DEFAULT_DATA = {
   leaves: {},
   subs: {},
   schedules: {},
+  monthlyTaskSchedules: {},
   workTasks: DEFAULT_WORK_TASKS,
   scheduleMode: 'daily-v3'
 };
@@ -1504,6 +1563,7 @@ currentViewDate.setHours(0, 0, 0, 0);
 let previewMode = 'month';
 let membersPanelOpen = false;
 let datePickerOpen = false;
+let workContentOpen = false;
 let data = loadData();
 let syncReady = false;
 let syncTimer = null;
@@ -1528,10 +1588,12 @@ function loadData() {
     parsed.leaves = parsed.leaves || {};
     parsed.subs = parsed.subs || {};
     parsed.schedules = parsed.schedules || {};
+    parsed.monthlyTaskSchedules = parsed.monthlyTaskSchedules || {};
     parsed.workTasks = normalizeWorkTasks(parsed.workTasks);
     parsed.members = [...FIXED_MEMBERS];
     if (parsed.scheduleMode !== DEFAULT_DATA.scheduleMode) {
       parsed.schedules = {};
+      parsed.monthlyTaskSchedules = {};
       parsed.leaves = {};
       parsed.subs = {};
       parsed.scheduleMode = DEFAULT_DATA.scheduleMode;
@@ -1666,6 +1728,7 @@ function normalizeData(raw) {
     leaves: needsScheduleMigration ? {} : (parsed.leaves || {}),
     subs: needsScheduleMigration ? {} : (parsed.subs || {}),
     schedules: needsScheduleMigration ? {} : (parsed.schedules || {}),
+    monthlyTaskSchedules: needsScheduleMigration ? {} : (parsed.monthlyTaskSchedules || {}),
     workTasks: normalizeWorkTasks(parsed.workTasks),
     scheduleMode: DEFAULT_DATA.scheduleMode
   };
@@ -1784,6 +1847,45 @@ function buildMonthSchedule(monthDate) {
   });
 
   return schedule;
+}
+
+function buildMonthlyTaskAssignees() {
+  const counts = {};
+  data.members.forEach(name => { counts[name] = 0; });
+
+  Object.values(data.monthlyTaskSchedules || {}).forEach(assignees => {
+    (assignees || []).forEach(name => {
+      if (counts[name] !== undefined) counts[name]++;
+    });
+  });
+
+  const selected = [];
+  while (selected.length < Math.min(2, data.members.length)) {
+    const candidates = data.members.filter(name => !selected.includes(name));
+    const minCount = Math.min(...candidates.map(name => counts[name] || 0));
+    const person = shuffleList(candidates.filter(name => (counts[name] || 0) === minCount))[0];
+    selected.push(person);
+    counts[person]++;
+  }
+
+  return selected;
+}
+
+function getMonthlyTaskAssignees(monthDate = currentMonthDate, force = false) {
+  const key = getMonthKey(monthDate);
+  const saved = data.monthlyTaskSchedules?.[key];
+  const valid = Array.isArray(saved)
+    && saved.length === Math.min(2, data.members.length)
+    && saved.every(name => data.members.includes(name))
+    && new Set(saved).size === saved.length;
+
+  if (force || !valid) {
+    data.monthlyTaskSchedules = data.monthlyTaskSchedules || {};
+    data.monthlyTaskSchedules[key] = buildMonthlyTaskAssignees();
+    saveData();
+  }
+
+  return data.monthlyTaskSchedules[key];
 }
 
 function scheduleMatchesCurrentMembers(schedule, dates) {
@@ -2154,27 +2256,52 @@ function confirmAddMember() {
 function renderDutyOverview() {
   const overview = document.getElementById('dutyOverview');
   const tasks = normalizeWorkTasks(data.workTasks);
+  const monthlyPeople = getMonthlyTaskAssignees(currentMonthDate);
+  const bodyHtml = workContentOpen ? `
+    <div class="task-section">
+      <div class="task-badge">日常</div>
+      <ol>${tasks.daily.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
+    </div>
+    <div class="task-section">
+      <div class="task-badge">每月一次</div>
+      <div>
+        <div class="monthly-duty-people">
+          <span class="monthly-duty-label">本月負責</span>
+          ${monthlyPeople.map(name => `
+            <span class="monthly-duty-chip">
+              <span class="tiny-avatar" style="background:${getColor(name)}">${escapeHtml(name[0])}</span>
+              ${escapeHtml(name)}
+            </span>
+          `).join('')}
+        </div>
+        <ol>${tasks.monthly.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
+      </div>
+    </div>
+    <div class="task-section">
+      <div class="task-badge">不定時</div>
+      <ul>${tasks.adhoc.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ul>
+    </div>
+  ` : '';
 
   overview.innerHTML = `
     <section class="duty-panel work-panel">
       <div class="work-panel-head">
-        <h2>工作內容</h2>
+        <div class="work-panel-head-main">
+          <button class="collapse-work-btn" type="button" onclick="toggleWorkContent()" aria-expanded="${workContentOpen ? 'true' : 'false'}" aria-label="${workContentOpen ? '收合工作內容' : '展開工作內容'}">
+            ${workContentOpen ? '−' : '+'}
+          </button>
+          <h2>工作內容</h2>
+        </div>
         <button class="edit-work-btn" type="button" onclick="openEditWorkTasks()">編輯</button>
       </div>
-      <div class="task-section">
-        <div class="task-badge">日常</div>
-        <ol>${tasks.daily.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
-      </div>
-      <div class="task-section">
-        <div class="task-badge">每月一次</div>
-        <ol>${tasks.monthly.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
-      </div>
-      <div class="task-section">
-        <div class="task-badge">不定時</div>
-        <ul>${tasks.adhoc.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ul>
-      </div>
+      ${bodyHtml}
     </section>
   `;
+}
+
+function toggleWorkContent() {
+  workContentOpen = !workContentOpen;
+  renderDutyOverview();
 }
 
 function renderAssignmentCard(label, person, note, variant = '') {
@@ -2456,6 +2583,7 @@ function rerollCurrentMonth() {
 
   const monthKey = getMonthKey(currentMonthDate);
   delete data.schedules[monthKey];
+  delete data.monthlyTaskSchedules[monthKey];
 
   getMonthWeekdays(currentMonthDate).forEach(d => {
     const dateStr = formatDate(d);
@@ -2464,6 +2592,7 @@ function rerollCurrentMonth() {
   });
 
   getMonthSchedule(currentMonthDate, true);
+  getMonthlyTaskAssignees(currentMonthDate, true);
   saveData();
   renderSchedule();
   renderStats();
