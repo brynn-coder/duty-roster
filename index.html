@@ -7,14 +7,22 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  :root {
+    --ink: #4a5469;
+    --muted: #7886a3;
+    --line: #d6dbe4;
+    --soft: #f7f8fb;
+    --soft-2: #eef1f6;
+    --panel: #fff;
+    --shadow: 0 10px 28px rgba(74,84,105,0.08);
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background:
-      radial-gradient(circle at top left, rgba(175,183,202,0.45), transparent 34%),
-      linear-gradient(135deg, #f7f8fb 0%, #eef1f6 100%);
+    background: #f4f6fa;
     color: #333;
     min-height: 100vh;
-    padding: 28px 20px;
+    padding: 24px 18px;
   }
 
   .container {
@@ -23,11 +31,11 @@
   }
 
   .app-shell {
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(214,219,228,0.9);
-    border-radius: 18px;
-    box-shadow: 0 18px 42px rgba(74,84,105,0.12);
-    padding: 28px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid rgba(214,219,228,0.95);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 24px;
   }
 
   /* Editable Title */
@@ -37,8 +45,8 @@
   }
 
   .title-area h1 {
-    font-size: 1.6rem;
-    color: #4a5469;
+    font-size: 1.5rem;
+    color: var(--ink);
     display: inline-block;
     cursor: pointer;
     border-bottom: 2px dashed transparent;
@@ -68,7 +76,7 @@
 
   .subtitle {
     text-align: center;
-    color: #7886a3;
+    color: var(--muted);
     font-size: 0.9rem;
     margin-bottom: 10px;
   }
@@ -101,7 +109,7 @@
 
   .sync-status {
     align-items: center;
-    color: #7886a3;
+    color: var(--muted);
     display: flex;
     font-size: 0.76rem;
     gap: 6px;
@@ -124,13 +132,13 @@
   .members-toggle {
     align-items: center;
     background: #fff;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     border-radius: 10px;
-    color: #4a5469;
+    color: var(--ink);
     cursor: pointer;
     display: inline-flex;
     font-size: 0.86rem;
-    font-weight: 700;
+    font-weight: 800;
     gap: 7px;
     padding: 9px 12px;
     transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
@@ -139,13 +147,14 @@
 
   .members-toggle:hover,
   .members-toggle.active {
-    background: #f7f8fb;
-    border-color: #7886a3;
-    box-shadow: 0 4px 12px rgba(74,84,105,0.1);
+    background: var(--soft);
+    border-color: var(--muted);
+    box-shadow: 0 4px 12px rgba(74,84,105,0.08);
   }
 
   .members-toggle svg,
-  .date-icon svg {
+  .date-icon svg,
+  .action-icon {
     display: block;
     height: 17px;
     width: 17px;
@@ -160,7 +169,7 @@
     max-width: 920px;
     padding: 12px;
     background: #fff;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     border-radius: 14px;
     flex-wrap: wrap;
   }
@@ -172,18 +181,18 @@
     align-items: center;
     gap: 6px;
     background: #fff;
+    border: 1px solid #e7eaf0;
     border-radius: 999px;
-    padding: 5px 12px 5px 6px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    padding: 6px 10px 6px 6px;
     font-size: 0.85rem;
-    font-weight: 500;
-    color: #4a5469;
+    font-weight: 700;
+    color: var(--ink);
     cursor: pointer;
     transition: box-shadow 0.2s, transform 0.2s;
   }
 
   .member-chip:hover {
-    box-shadow: 0 4px 12px rgba(74,84,105,0.12);
+    box-shadow: 0 4px 12px rgba(74,84,105,0.08);
     transform: translateY(-1px);
   }
 
@@ -217,12 +226,15 @@
   .member-chip .remove-member:hover { color: #e74c3c; }
 
   .add-member-btn {
+    align-items: center;
     background: #fff;
-    border: 2px dashed #afb7ca;
+    border: 1px dashed #afb7ca;
     border-radius: 999px;
-    padding: 5px 14px;
+    display: inline-flex;
+    gap: 6px;
+    padding: 7px 12px;
     font-size: 0.85rem;
-    color: #7886a3;
+    color: var(--muted);
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -240,10 +252,10 @@
   }
 
   .duty-panel {
-    background: #fff;
-    border: 1px solid #d6dbe4;
+    background: var(--panel);
+    border: 1px solid var(--line);
     border-radius: 14px;
-    box-shadow: 0 8px 20px rgba(74,84,105,0.06);
+    box-shadow: none;
     padding: 16px;
   }
 
@@ -252,7 +264,7 @@
   }
 
   .duty-panel h2 {
-    color: #4a5469;
+    color: var(--ink);
     font-size: 1rem;
     margin-bottom: 10px;
   }
@@ -274,10 +286,10 @@
 
   .collapse-work-btn {
     align-items: center;
-    background: #eef1f6;
-    border: 1px solid #d6dbe4;
+    background: var(--soft-2);
+    border: 1px solid var(--line);
     border-radius: 9px;
-    color: #4a5469;
+    color: var(--ink);
     cursor: pointer;
     display: inline-flex;
     font-size: 0.9rem;
@@ -297,13 +309,16 @@
   }
 
   .edit-work-btn {
+    align-items: center;
     background: #fff;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     border-radius: 10px;
     color: #5e687f;
     cursor: pointer;
+    display: inline-flex;
     font-size: 0.78rem;
     font-weight: 800;
+    gap: 6px;
     padding: 7px 12px;
   }
 
@@ -355,9 +370,9 @@
 
   .task-badge {
     align-self: start;
-    background: #eef1f6;
+    background: var(--soft-2);
     border-radius: 999px;
-    color: #4a5469;
+    color: var(--ink);
     font-size: 0.78rem;
     font-weight: 800;
     padding: 6px 9px;
@@ -503,9 +518,9 @@
     justify-content: space-between;
     gap: 12px;
     margin: 6px auto 12px;
-    padding: 12px;
-    background: #f7f8fb;
-    border: 1px solid #d6dbe4;
+    padding: 10px;
+    background: var(--soft);
+    border: 1px solid var(--line);
     border-radius: 14px;
     max-width: 920px;
   }
@@ -525,7 +540,7 @@
   }
 
   .month-nav button {
-    background: #4a5469;
+    background: var(--ink);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -554,7 +569,7 @@
 
   .date-icon {
     align-items: center;
-    background: #4a5469;
+    background: var(--ink);
     border-radius: 10px;
     color: #fff;
     display: inline-flex;
@@ -575,9 +590,9 @@
 
   .selected-date-pill {
     background: #fff;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     border-radius: 999px;
-    color: #4a5469;
+    color: var(--ink);
     font-size: 0.9rem;
     font-weight: 700;
     padding: 10px 14px;
@@ -654,13 +669,16 @@
   }
 
   .reroll-btn {
+    align-items: center;
     background: #fff;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     border-radius: 10px;
     color: #5e687f;
     cursor: pointer;
+    display: inline-flex;
     font-size: 0.8rem;
     font-weight: 700;
+    gap: 6px;
     padding: 10px 12px;
     transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
     white-space: nowrap;
@@ -680,8 +698,8 @@
     padding: 5px;
     width: fit-content;
     max-width: 100%;
-    background: #eef1f6;
-    border: 1px solid #d6dbe4;
+    background: var(--soft-2);
+    border: 1px solid var(--line);
     border-radius: 12px;
   }
 
@@ -700,8 +718,8 @@
 
   .preview-switch button.active {
     background: #fff;
-    color: #4a5469;
-    box-shadow: 0 4px 12px rgba(74,84,105,0.12);
+    color: var(--ink);
+    box-shadow: 0 3px 9px rgba(74,84,105,0.08);
   }
 
   .preview-note {
@@ -714,31 +732,31 @@
   /* Schedule Grid */
   .schedule {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
-    gap: 12px;
-    margin-bottom: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 26px;
   }
 
   .day-card {
     background: #fff;
     border: 1px solid #e7eaf0;
     border-radius: 12px;
-    padding: 16px;
+    padding: 14px;
     text-align: left;
-    box-shadow: 0 8px 20px rgba(74,84,105,0.07);
+    box-shadow: none;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
-    min-height: 178px;
+    min-height: 168px;
   }
 
   .day-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 18px rgba(74,84,105,0.08);
   }
 
   .day-card.today {
-    border-color: #4a5469;
-    box-shadow: 0 10px 24px rgba(74,84,105,0.18);
+    border-color: var(--ink);
+    box-shadow: 0 8px 18px rgba(74,84,105,0.12);
   }
 
   .day-card.today::before {
@@ -748,7 +766,7 @@
     right: 12px;
     padding: 3px 8px;
     border-radius: 999px;
-    background: #4a5469;
+    background: var(--ink);
     color: #fff;
     font-size: 0.68rem;
     font-weight: 600;
@@ -781,8 +799,8 @@
   }
 
   .day-card .avatar {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     margin: 0 0 10px;
     display: flex;
@@ -836,10 +854,13 @@
   }
 
   .day-card .actions button {
+    align-items: center;
+    display: inline-flex;
+    gap: 5px;
     font-size: 0.75rem;
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid #d6dbe4;
+    border: 1px solid var(--line);
     background: #fff;
     color: #5e687f;
     cursor: pointer;
@@ -892,7 +913,7 @@
 
   .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
     gap: 10px;
     margin-bottom: 28px;
   }
@@ -903,7 +924,7 @@
     border-radius: 12px;
     padding: 14px;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(74,84,105,0.06);
+    box-shadow: none;
   }
 
   .stat-card .stat-avatar {
@@ -1419,6 +1440,8 @@
     .preview-switch { width: 100%; }
     .preview-switch button { flex: 1; min-width: 0; }
     .members-toggle { justify-content: center; width: 100%; }
+    .members-bar { margin-top: -4px; }
+    .month-nav button { padding: 10px 12px; }
     .duty-overview { grid-template-columns: 1fr; }
     .task-section { grid-template-columns: 1fr; }
     .task-section.is-a ol { columns: 1; }
@@ -1483,7 +1506,13 @@
           </svg>
           <span>成員 <span id="memberCountText"></span></span>
         </button>
-        <button class="reroll-btn" onclick="rerollCurrentMonth()" title="重新隨機排班">重排</button>
+        <button class="reroll-btn" onclick="rerollCurrentMonth()" title="重新隨機排班">
+          <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+            <path d="M21 3v6h-6"></path>
+          </svg>
+          <span>重排</span>
+        </button>
       </div>
     </div>
 
@@ -2197,7 +2226,12 @@ function renderMembersBar() {
 
   const addBtn = document.createElement('button');
   addBtn.className = 'add-member-btn';
-  addBtn.textContent = '+ 新增成員';
+  addBtn.innerHTML = `
+    <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 5v14M5 12h14"></path>
+    </svg>
+    <span>新增成員</span>
+  `;
   addBtn.onclick = openAddMemberModal;
   bar.appendChild(addBtn);
 }
@@ -2391,11 +2425,19 @@ function renderDutyOverview() {
       <div class="work-panel-head">
         <div class="work-panel-head-main">
           <button class="collapse-work-btn" type="button" onclick="toggleWorkContent()" aria-expanded="${workContentOpen ? 'true' : 'false'}" aria-label="${workContentOpen ? '收合工作內容' : '展開工作內容'}">
-            ${workContentOpen ? '−' : '+'}
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              ${workContentOpen ? '<path d="m18 15-6-6-6 6"></path>' : '<path d="m6 9 6 6 6-6"></path>'}
+            </svg>
           </button>
           <h2>工作內容</h2>
         </div>
-        <button class="edit-work-btn" type="button" onclick="openEditWorkTasks()">編輯</button>
+        <button class="edit-work-btn" type="button" onclick="openEditWorkTasks()">
+          <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+          </svg>
+          <span>編輯</span>
+        </button>
       </div>
       ${bodyHtml}
     </section>
@@ -2570,7 +2612,15 @@ function renderSchedule() {
     const displayPerson = isOnLeave && sub ? sub : original;
     const initial = displayPerson ? displayPerson[0] : '?';
 
-    const actionsHtml = `<button class="manage-leave" onclick="openDayManage('${ds}', decodeURIComponent('${encodeInline(original)}'))">管理</button>`;
+    const actionsHtml = `
+      <button class="manage-leave" onclick="openDayManage('${ds}', decodeURIComponent('${encodeInline(original)}'))">
+        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        <span>管理</span>
+      </button>
+    `;
 
     let bodyHtml = '';
     if (isOnLeave && sub) {
