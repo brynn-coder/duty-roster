@@ -671,8 +671,11 @@
     inset: 0;
     background: rgba(0,0,0,0.4);
     z-index: 100;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px 0;
   }
 
   .modal-overlay.active { display: flex; }
@@ -683,6 +686,7 @@
     padding: 22px;
     width: 390px;
     max-width: 92vw;
+    margin: auto 0;
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
   }
 
