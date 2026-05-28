@@ -222,6 +222,130 @@
     color: #4a5469;
   }
 
+  .duty-overview {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.8fr);
+    gap: 14px;
+    margin: 0 auto 20px;
+    max-width: 920px;
+  }
+
+  .duty-panel {
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(74,84,105,0.06);
+    padding: 16px;
+  }
+
+  .duty-panel h2 {
+    color: #4a5469;
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .task-section {
+    border-top: 1px solid #eef1f6;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 86px minmax(0, 1fr);
+    padding: 12px 0;
+  }
+
+  .task-section:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .task-badge {
+    align-self: start;
+    background: #eef1f6;
+    border-radius: 999px;
+    color: #4a5469;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 9px;
+    text-align: center;
+  }
+
+  .task-section ol,
+  .task-section ul {
+    color: #4a5469;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    padding-left: 20px;
+  }
+
+  .task-section ul {
+    list-style: disc;
+  }
+
+  .assignment-stack {
+    display: grid;
+    gap: 10px;
+  }
+
+  .assignment-card {
+    background: #f7f8fb;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .assignment-label {
+    color: #7886a3;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    margin-bottom: 6px;
+  }
+
+  .assignment-person {
+    align-items: center;
+    color: #4a5469;
+    display: flex;
+    font-size: 1rem;
+    font-weight: 800;
+    gap: 8px;
+  }
+
+  .assignment-note {
+    color: #7886a3;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    margin-top: 6px;
+  }
+
+  .tiny-avatar {
+    align-items: center;
+    border-radius: 50%;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.76rem;
+    font-weight: 800;
+    height: 26px;
+    justify-content: center;
+    width: 26px;
+  }
+
+  .adhoc-btn {
+    background: #4a5469;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-top: 10px;
+    padding: 9px 12px;
+    width: 100%;
+  }
+
+  .adhoc-btn:hover {
+    background: #5e687f;
+  }
+
   /* Month Navigation */
   .month-nav {
     display: flex;
@@ -525,6 +649,19 @@
     color: #4a5469;
     margin-bottom: 4px;
     min-height: 1.3em;
+  }
+
+  .day-card .assignment-label {
+    color: #7886a3;
+    font-size: 0.68rem;
+    font-weight: 800;
+    margin-top: 8px;
+    margin-bottom: 3px;
+  }
+
+  .day-card .person-name.secondary-duty {
+    color: #5e687f;
+    font-size: 0.9rem;
   }
 
   .day-card .person-name.on-leave {
@@ -1132,6 +1269,9 @@
     .preview-switch { width: 100%; }
     .preview-switch button { flex: 1; min-width: 0; }
     .members-toggle { justify-content: center; width: 100%; }
+    .duty-overview { grid-template-columns: 1fr; }
+    .task-section { grid-template-columns: 1fr; }
+    .task-badge { justify-self: start; }
     .schedule { grid-template-columns: repeat(1, 1fr); }
     .section-head { align-items: flex-start; flex-direction: column; }
   }
@@ -1194,6 +1334,7 @@
     </div>
 
     <div class="members-bar" id="membersBar"></div>
+    <div class="duty-overview" id="dutyOverview"></div>
     <div class="preview-note" id="previewNote"></div>
 
     <div class="schedule" id="schedule"></div>
@@ -1232,11 +1373,27 @@ const PALETTE = [
   '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031'
 ];
 const DAY_NAMES = ['週一', '週二', '週三', '週四', '週五'];
+const FIXED_MEMBERS = ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'];
+const DUTY_A_TASKS = [
+  '金雞換水、餅乾（金雞上方偶爾有灰塵要擦一下）',
+  '檢查信箱',
+  '領掛號信 / 包裹',
+  '清潔地板',
+  '倒垃圾',
+  '清潔冰箱',
+  '清潔飲水機',
+  '清潔公共區域桌面',
+  '清潔公共區域櫃子',
+  '衛生紙用完時購買',
+  '桶裝水剩餘 1 桶時訂購'
+];
+const DUTY_B_TASKS = ['清潔窗台', '拖地'];
+const ADHOC_TASKS = ['寄掛號信 / 包裹', '幫忙送東西至宋鈴家等'];
 
 const DEFAULT_DATA = {
   title: '📋 值日生排班表',
-  subtitle: '週一到週五 · 隨機平均排班 · 請假補位 · 月份檢視',
-  members: ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'],
+  subtitle: '值日生 A 每週一組 · 值日生 B 每月一組 · 不定時事項輪流',
+  members: FIXED_MEMBERS,
   colors: {
     Vivian: '#e74c3c',
     Hannah: '#e67e22',
@@ -1246,7 +1403,11 @@ const DEFAULT_DATA = {
   },
   leaves: {},
   subs: {},
-  schedules: {}
+  schedules: {},
+  monthlySchedules: {},
+  adHocIndex: 0,
+  adHocLog: [],
+  scheduleMode: 'weekly-v2'
 };
 
 let currentMonthDate = new Date();
@@ -1281,6 +1442,17 @@ function loadData() {
     parsed.leaves = parsed.leaves || {};
     parsed.subs = parsed.subs || {};
     parsed.schedules = parsed.schedules || {};
+    parsed.monthlySchedules = parsed.monthlySchedules || {};
+    parsed.adHocIndex = Number(parsed.adHocIndex || 0);
+    parsed.adHocLog = parsed.adHocLog || [];
+    parsed.members = [...FIXED_MEMBERS];
+    if (parsed.scheduleMode !== DEFAULT_DATA.scheduleMode) {
+      parsed.schedules = {};
+      parsed.monthlySchedules = {};
+      parsed.leaves = {};
+      parsed.subs = {};
+      parsed.scheduleMode = DEFAULT_DATA.scheduleMode;
+    }
     parsed.subtitle = parsed.subtitle || DEFAULT_DATA.subtitle;
     return parsed;
   }
@@ -1401,14 +1573,20 @@ async function pullRemoteData() {
 
 function normalizeData(raw) {
   const parsed = raw || {};
+  const needsScheduleMigration = parsed.scheduleMode !== DEFAULT_DATA.scheduleMode;
   return {
     ...DEFAULT_DATA,
     ...parsed,
+    members: [...FIXED_MEMBERS],
     subtitle: parsed.subtitle || DEFAULT_DATA.subtitle,
     colors: parsed.colors || DEFAULT_DATA.colors,
-    leaves: parsed.leaves || {},
-    subs: parsed.subs || {},
-    schedules: parsed.schedules || {}
+    leaves: needsScheduleMigration ? {} : (parsed.leaves || {}),
+    subs: needsScheduleMigration ? {} : (parsed.subs || {}),
+    schedules: needsScheduleMigration ? {} : (parsed.schedules || {}),
+    monthlySchedules: needsScheduleMigration ? {} : (parsed.monthlySchedules || {}),
+    adHocIndex: Number(parsed.adHocIndex || 0),
+    adHocLog: parsed.adHocLog || [],
+    scheduleMode: DEFAULT_DATA.scheduleMode
   };
 }
 
@@ -1482,41 +1660,68 @@ function shuffleList(list) {
   return arr;
 }
 
-function buildMonthSchedule(monthDate) {
-  const dates = getMonthWeekdays(monthDate);
-  const schedule = {};
-  const shuffledMembers = shuffleList(data.members);
-  const baseCount = Math.floor(dates.length / data.members.length);
-  const extraCount = dates.length % data.members.length;
-  const remaining = {};
-  const lastByWeekday = {};
-  let previousPerson = null;
+function getWeekKey(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - day + (day === 0 ? -6 : 1));
+  return formatDate(d);
+}
 
-  shuffledMembers.forEach((name, index) => {
-    remaining[name] = baseCount + (index < extraCount ? 1 : 0);
+function getBusinessWeeksInMonth(monthDate) {
+  const dates = getMonthWeekdays(monthDate);
+  const weekMap = new Map();
+  dates.forEach(d => {
+    const key = getWeekKey(d);
+    if (!weekMap.has(key)) weekMap.set(key, []);
+    weekMap.get(key).push(new Date(d));
+  });
+  return [...weekMap.entries()].map(([key, weekDates]) => ({ key, dates: weekDates }));
+}
+
+function chooseLeastAssigned(counts, avoidPerson = null) {
+  let candidates = data.members.filter(name => name !== avoidPerson);
+  if (candidates.length === 0) candidates = [...data.members];
+  const minCount = Math.min(...candidates.map(name => counts[name] || 0));
+  return shuffleList(candidates.filter(name => (counts[name] || 0) === minCount))[0];
+}
+
+function buildMonthSchedule(monthDate) {
+  const schedule = {};
+  const counts = {};
+  data.members.forEach(name => { counts[name] = 0; });
+
+  Object.values(data.schedules || {}).forEach(monthSchedule => {
+    const seenWeeks = new Set();
+    Object.keys(monthSchedule || {}).sort().forEach(dateStr => {
+      const person = monthSchedule[dateStr];
+      const weekKey = getWeekKey(parseDateString(dateStr));
+      if (person && counts[person] !== undefined && !seenWeeks.has(weekKey)) {
+        counts[person]++;
+        seenWeeks.add(weekKey);
+      }
+    });
   });
 
-  dates.forEach((d) => {
-    const weekday = d.getDay();
-    let candidates = data.members.filter(name => remaining[name] > 0);
-
-    const avoidSameWeekday = candidates.filter(name => name !== lastByWeekday[weekday]);
-    if (avoidSameWeekday.length > 0) candidates = avoidSameWeekday;
-
-    const avoidPreviousDay = candidates.filter(name => name !== previousPerson);
-    if (avoidPreviousDay.length > 0) candidates = avoidPreviousDay;
-
-    const maxRemaining = Math.max(...candidates.map(name => remaining[name]));
-    candidates = candidates.filter(name => remaining[name] === maxRemaining);
-
-    const person = shuffleList(candidates)[0];
-    schedule[formatDate(d)] = person;
-    remaining[person]--;
-    lastByWeekday[weekday] = person;
+  let previousPerson = null;
+  getBusinessWeeksInMonth(monthDate).forEach(week => {
+    const person = chooseLeastAssigned(counts, previousPerson);
+    week.dates.forEach(d => {
+      schedule[formatDate(d)] = person;
+    });
+    counts[person]++;
     previousPerson = person;
   });
 
   return schedule;
+}
+
+function buildMonthlyDutySchedule(monthDate) {
+  const counts = {};
+  data.members.forEach(name => { counts[name] = 0; });
+  Object.values(data.monthlySchedules || {}).forEach(person => {
+    if (counts[person] !== undefined) counts[person]++;
+  });
+  return chooseLeastAssigned(counts);
 }
 
 function scheduleMatchesCurrentMembers(schedule, dates) {
@@ -1537,6 +1742,15 @@ function getMonthSchedule(monthDate, force = false) {
   }
 
   return data.schedules[key];
+}
+
+function getMonthlyAssignment(monthDate, force = false) {
+  const key = getMonthKey(monthDate);
+  if (force || !data.members.includes(data.monthlySchedules[key])) {
+    data.monthlySchedules[key] = buildMonthlyDutySchedule(monthDate);
+    saveData();
+  }
+  return data.monthlySchedules[key];
 }
 
 function getOriginalAssignment(dateStr) {
@@ -1691,51 +1905,48 @@ function getColor(name) {
 function calcStats() {
   const stats = {};
   data.members.forEach(m => {
-    stats[m] = { assigned: 0, actual: 0, leave: 0, subbed: 0 };
+    stats[m] = { assigned: 0, actual: 0, leave: 0, subbed: 0, dutyA: 0, dutyB: 0, adhoc: 0 };
   });
 
   if (data.members.length === 0) return stats;
 
-  const allDates = new Set();
-  const monthEnd = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0);
-  const monthEndStr = formatDate(monthEnd);
-
-  Object.keys(data.leaves).forEach(d => {
-    if (d <= monthEndStr) allDates.add(d);
+  getBusinessWeeksInMonth(currentMonthDate).forEach(week => {
+    const person = getOriginalAssignment(formatDate(week.dates[0]));
+    if (person && stats[person]) {
+      stats[person].assigned++;
+      stats[person].actual++;
+      stats[person].dutyA++;
+    }
   });
-  Object.keys(data.subs).forEach(d => {
-    if (d <= monthEndStr) allDates.add(d);
-  });
-  const viewDates = getMonthWeekdays(currentMonthDate);
-  viewDates.forEach(d => allDates.add(formatDate(d)));
 
-  const allSorted = [...allDates].sort();
-  if (allSorted.length === 0) return stats;
+  const monthlyPerson = getMonthlyAssignment(currentMonthDate);
+  if (monthlyPerson && stats[monthlyPerson]) {
+    stats[monthlyPerson].assigned++;
+    stats[monthlyPerson].actual++;
+    stats[monthlyPerson].dutyB++;
+  }
 
-  const startDate = new Date(allSorted[0] + 'T00:00:00');
-  const endDate = new Date(allSorted[allSorted.length - 1] + 'T00:00:00');
-
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const dow = d.getDay();
-    if (dow < 1 || dow > 5) continue;
-
+  getMonthWeekdays(currentMonthDate).forEach(d => {
     const ds = formatDate(d);
     const original = getOriginalAssignment(ds);
-    if (!original || !stats[original]) continue;
-
-    stats[original].assigned++;
-
-    if (data.leaves[ds] === original) {
+    if (data.leaves[ds] === original && stats[original]) {
       stats[original].leave++;
+      stats[original].actual--;
       const sub = data.subs[ds];
       if (sub && stats[sub]) {
         stats[sub].actual++;
         stats[sub].subbed++;
       }
-    } else {
-      stats[original].actual++;
     }
-  }
+  });
+
+  (data.adHocLog || []).forEach(item => {
+    if (!item.date || item.date.slice(0, 7) !== getMonthKey(currentMonthDate)) return;
+    if (stats[item.person]) {
+      stats[item.person].actual++;
+      stats[item.person].adhoc++;
+    }
+  });
 
   return stats;
 }
@@ -1813,22 +2024,15 @@ function renderMembersBar() {
   }
   if (countText) countText.textContent = `(${data.members.length})`;
 
-  data.members.forEach(m => {
+  data.members.forEach((m, index) => {
     const chip = document.createElement('div');
     chip.className = 'member-chip';
     chip.innerHTML = `
       <div class="chip-dot" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
-      ${escapeHtml(m)}
-      <button class="remove-member" onclick="removeMember(decodeURIComponent('${encodeInline(m)}'))" title="移除 ${escapeHtml(m)}">&times;</button>
+      第 ${index + 1} 組 · ${escapeHtml(m)}
     `;
     bar.appendChild(chip);
   });
-
-  const addBtn = document.createElement('button');
-  addBtn.className = 'add-member-btn';
-  addBtn.textContent = '+ 新增成員';
-  addBtn.onclick = openAddMemberModal;
-  bar.appendChild(addBtn);
 }
 
 function toggleMembersPanel() {
@@ -1913,6 +2117,54 @@ function confirmAddMember() {
   renderAll();
 }
 
+function renderDutyOverview() {
+  const overview = document.getElementById('dutyOverview');
+  const weekPerson = getOriginalAssignment(formatDate(getCurrentWeekdays()[0]));
+  const monthPerson = getMonthlyAssignment(currentMonthDate);
+  const nextAdHocPerson = data.members[data.adHocIndex % data.members.length];
+  const lastAdHoc = data.adHocLog?.[data.adHocLog.length - 1];
+
+  overview.innerHTML = `
+    <section class="duty-panel">
+      <h2>工作內容</h2>
+      <div class="task-section">
+        <div class="task-badge">值日生 A<br>每週一組</div>
+        <ol>${DUTY_A_TASKS.map(task => `<li>${escapeHtml(task)}</li>`).join('')}</ol>
+      </div>
+      <div class="task-section">
+        <div class="task-badge">值日生 B<br>每月一組</div>
+        <ol start="12">${DUTY_B_TASKS.map(task => `<li>${escapeHtml(task)}</li>`).join('')}</ol>
+      </div>
+      <div class="task-section">
+        <div class="task-badge">不定時</div>
+        <ul>${ADHOC_TASKS.map(task => `<li>${escapeHtml(task)}</li>`).join('')}</ul>
+      </div>
+    </section>
+    <section class="duty-panel">
+      <h2>目前輪值</h2>
+      <div class="assignment-stack">
+        ${renderAssignmentCard('本週值日生 A', weekPerson, '負責 1-11 項工作內容')}
+        ${renderAssignmentCard('本月值日生 B', monthPerson, '負責清潔窗台、拖地')}
+        ${renderAssignmentCard('下一位不定時輪值', nextAdHocPerson, lastAdHoc ? `上次由 ${lastAdHoc.person} 完成` : '尚未記錄不定時事項')}
+      </div>
+      <button class="adhoc-btn" onclick="completeAdHocDuty()">記錄一次不定時事項</button>
+    </section>
+  `;
+}
+
+function renderAssignmentCard(label, person, note) {
+  return `
+    <div class="assignment-card">
+      <div class="assignment-label">${escapeHtml(label)}</div>
+      <div class="assignment-person">
+        <span class="tiny-avatar" style="background:${getColor(person)}">${escapeHtml(person ? person[0] : '?')}</span>
+        <span>${escapeHtml(person || '未排定')}</span>
+      </div>
+      <div class="assignment-note">${escapeHtml(note)}</div>
+    </div>
+  `;
+}
+
 // ─── Schedule ───
 function isMobileView() {
   return window.innerWidth <= 720;
@@ -1938,6 +2190,7 @@ function renderCalendarView(container, dates) {
   dates.forEach(d => {
     const ds = formatDate(d);
     const original = getOriginalAssignment(ds);
+    const monthlyPerson = getMonthlyAssignment(d);
     const isOnLeave = data.leaves[ds] === original;
     const sub = data.subs[ds];
     const displayPerson = isOnLeave && sub ? sub : original;
@@ -1951,14 +2204,15 @@ function renderCalendarView(container, dates) {
     html += `<div class="cal-avatar" style="background:${getColor(displayPerson)}">${escapeHtml(displayPerson ? displayPerson[0] : '?')}</div>`;
 
     if (isOnLeave && sub) {
-      html += `<span class="cal-name on-leave">${escapeHtml(original)}</span>`;
-      html += `<span class="cal-sub">→${escapeHtml(sub)}</span>`;
+      html += `<span class="cal-name on-leave">A ${escapeHtml(original)}</span>`;
+      html += `<span class="cal-sub">A→${escapeHtml(sub)}</span>`;
     } else if (isOnLeave && !sub) {
-      html += `<span class="cal-name on-leave">${escapeHtml(original)}</span>`;
+      html += `<span class="cal-name on-leave">A ${escapeHtml(original)}</span>`;
       html += `<span class="cal-sub">⚠️</span>`;
     } else {
-      html += `<span class="cal-name">${escapeHtml(displayPerson)}</span>`;
+      html += `<span class="cal-name">A ${escapeHtml(displayPerson)}</span>`;
     }
+    html += `<span class="cal-sub">B ${escapeHtml(monthlyPerson)}</span>`;
 
     cell.innerHTML = html;
     container.appendChild(cell);
@@ -1975,8 +2229,10 @@ function renderCalendarView(container, dates) {
 function renderSchedule() {
   const dates = getPreviewDates();
   getMonthSchedule(currentMonthDate);
+  getMonthlyAssignment(currentMonthDate);
   syncDateControls();
   renderPreviewSwitch();
+  renderDutyOverview();
   document.getElementById('previewNote').textContent = getPreviewNote(dates);
 
   const scheduleEl = document.getElementById('schedule');
@@ -2001,6 +2257,7 @@ function renderSchedule() {
   dates.forEach((d) => {
     const ds = formatDate(d);
     const original = getOriginalAssignment(ds);
+    const monthlyPerson = getMonthlyAssignment(d);
     const isOnLeave = data.leaves[ds] === original;
     const sub = data.subs[ds];
     const today = isToday(d);
@@ -2016,17 +2273,26 @@ function renderSchedule() {
     let bodyHtml = '';
     if (isOnLeave && sub) {
       bodyHtml = `
+        <div class="assignment-label">值日生 A</div>
         <div class="person-name on-leave">${escapeHtml(original)}</div>
         <div class="sub-info">代班 → ${escapeHtml(sub)}</div>
       `;
     } else if (isOnLeave && !sub) {
       bodyHtml = `
+        <div class="assignment-label">值日生 A</div>
         <div class="person-name on-leave">${escapeHtml(original)}</div>
         <div class="sub-info">⚠️ 尚未指定代班</div>
       `;
     } else {
-      bodyHtml = `<div class="person-name">${escapeHtml(displayPerson)}</div>`;
+      bodyHtml = `
+        <div class="assignment-label">值日生 A</div>
+        <div class="person-name">${escapeHtml(displayPerson)}</div>
+      `;
     }
+    bodyHtml += `
+      <div class="assignment-label">值日生 B</div>
+      <div class="person-name secondary-duty">${escapeHtml(monthlyPerson)}</div>
+    `;
 
     card.innerHTML = `
       <div class="day-name">${DAY_NAMES[d.getDay() - 1]}</div>
@@ -2046,7 +2312,7 @@ function renderStats() {
   const stats = calcStats();
   const statsEl = document.getElementById('statsGrid');
   statsEl.innerHTML = '';
-  document.getElementById('statsNote').textContent = `累計到 ${formatMonthLabel(currentMonthDate)}，請假代班會直接反映補班差額`;
+  document.getElementById('statsNote').textContent = `${formatMonthLabel(currentMonthDate)}：A 以週計、B 以月計，不定時另計`;
 
   data.members.forEach(m => {
     const s = stats[m];
@@ -2065,10 +2331,12 @@ function renderStats() {
     card.innerHTML = `
       <div class="stat-avatar" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
       <div class="stat-name">${escapeHtml(m)}</div>
-      <div class="stat-row">應值 <span>${s.assigned}</span></div>
+      <div class="stat-row">A 週次 <span>${s.dutyA}</span></div>
+      <div class="stat-row">B 月次 <span>${s.dutyB}</span></div>
       <div class="stat-row">實值 <span>${s.actual}</span></div>
       <div class="stat-row">請假 <span>${s.leave}</span></div>
       <div class="stat-row">代班 <span>${s.subbed}</span></div>
+      <div class="stat-row">不定時 <span>${s.adhoc}</span></div>
       ${balanceHtml}
     `;
 
@@ -2123,10 +2391,11 @@ function setPreviewMode(mode) {
 }
 
 function rerollCurrentMonth() {
-  if (!confirm('重新隨機排班會清除這個月份已設定的請假 / 代班，確定要重排嗎？')) return;
+  if (!confirm('重新隨機排班會清除這個月份已設定的請假 / 代班，並重排值日生 A / B，確定要重排嗎？')) return;
 
   const monthKey = getMonthKey(currentMonthDate);
   delete data.schedules[monthKey];
+  delete data.monthlySchedules[monthKey];
 
   getMonthWeekdays(currentMonthDate).forEach(d => {
     const dateStr = formatDate(d);
@@ -2135,6 +2404,7 @@ function rerollCurrentMonth() {
   });
 
   getMonthSchedule(currentMonthDate, true);
+  getMonthlyAssignment(currentMonthDate, true);
   saveData();
   renderSchedule();
   renderStats();
@@ -2329,6 +2599,23 @@ function confirmChangeAssignment(dateStr, newPerson) {
   renderStats();
 }
 
+function completeAdHocDuty() {
+  const person = data.members[data.adHocIndex % data.members.length];
+  if (!person) return;
+  if (!confirm(`要記錄這次不定時事項由 ${person} 完成嗎？`)) return;
+
+  data.adHocLog = data.adHocLog || [];
+  data.adHocLog.push({
+    person,
+    date: formatDate(getToday()),
+    createdAt: Date.now()
+  });
+  data.adHocIndex = (data.adHocIndex + 1) % data.members.length;
+  saveData();
+  renderDutyOverview();
+  renderStats();
+}
+
 function requestLeave(dateStr, person) {
   const stats = calcStats();
   const date = parseDateString(dateStr);
@@ -2423,6 +2710,7 @@ function renderAll() {
   renderTitle();
   renderSubtitle();
   renderMembersBar();
+  renderDutyOverview();
   renderSchedule();
   renderStats();
 }
