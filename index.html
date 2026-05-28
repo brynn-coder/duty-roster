@@ -178,6 +178,13 @@
     font-size: 0.85rem;
     font-weight: 500;
     color: #4a5469;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .member-chip:hover {
+    box-shadow: 0 4px 12px rgba(74,84,105,0.12);
+    transform: translateY(-1px);
   }
 
   .member-chip .chip-dot {
@@ -194,14 +201,17 @@
 
   .member-chip .remove-member {
     margin-left: 4px;
-    background: none;
+    background: #f7f8fb;
     border: none;
+    border-radius: 50%;
     color: #afb7ca;
     font-size: 1rem;
     cursor: pointer;
     line-height: 1;
-    padding: 0 2px;
+    height: 20px;
+    padding: 0;
     transition: color 0.2s;
+    width: 20px;
   }
 
   .member-chip .remove-member:hover { color: #e74c3c; }
@@ -1517,7 +1527,7 @@ const PALETTE = [
   '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031'
 ];
 const DAY_NAMES = ['週一', '週二', '週三', '週四', '週五'];
-const FIXED_MEMBERS = ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'];
+const DEFAULT_MEMBERS = ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'];
 const DEFAULT_WORK_TASKS = {
   daily: [
     '金雞換水、餅乾（金雞上方偶爾有灰塵要擦一下）',
@@ -1539,7 +1549,7 @@ const DEFAULT_WORK_TASKS = {
 const DEFAULT_DATA = {
   title: '📋 值日生排班表',
   subtitle: '週一到週五 · 每日一人 · 隨機平均排班 · 請假補位',
-  members: FIXED_MEMBERS,
+  members: DEFAULT_MEMBERS,
   colors: {
     Vivian: '#e74c3c',
     Hannah: '#e67e22',
@@ -1590,7 +1600,7 @@ function loadData() {
     parsed.schedules = parsed.schedules || {};
     parsed.monthlyTaskSchedules = parsed.monthlyTaskSchedules || {};
     parsed.workTasks = normalizeWorkTasks(parsed.workTasks);
-    parsed.members = [...FIXED_MEMBERS];
+    parsed.members = normalizeMembers(parsed.members);
     if (parsed.scheduleMode !== DEFAULT_DATA.scheduleMode) {
       parsed.schedules = {};
       parsed.monthlyTaskSchedules = {};
@@ -1722,7 +1732,7 @@ function normalizeData(raw) {
   return {
     ...DEFAULT_DATA,
     ...parsed,
-    members: [...FIXED_MEMBERS],
+    members: normalizeMembers(parsed.members),
     subtitle: parsed.subtitle || DEFAULT_DATA.subtitle,
     colors: parsed.colors || DEFAULT_DATA.colors,
     leaves: needsScheduleMigration ? {} : (parsed.leaves || {}),
@@ -1740,6 +1750,19 @@ function normalizeWorkTasks(tasks = {}) {
     monthly: Array.isArray(tasks.monthly) ? tasks.monthly : [...DEFAULT_WORK_TASKS.monthly],
     adhoc: Array.isArray(tasks.adhoc) ? tasks.adhoc : [...DEFAULT_WORK_TASKS.adhoc]
   };
+}
+
+function normalizeMembers(members) {
+  const list = Array.isArray(members) ? members : DEFAULT_MEMBERS;
+  const seen = new Set();
+  const normalized = [];
+  list.forEach(member => {
+    const name = String(member || '').trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    normalized.push(name);
+  });
+  return normalized.length ? normalized : [...DEFAULT_MEMBERS];
 }
 
 async function refreshRemoteData() {
@@ -2163,12 +2186,20 @@ function renderMembersBar() {
   data.members.forEach(m => {
     const chip = document.createElement('div');
     chip.className = 'member-chip';
+    chip.onclick = () => openEditMemberModal(m);
     chip.innerHTML = `
       <div class="chip-dot" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
       ${escapeHtml(m)}
+      <button class="remove-member" onclick="event.stopPropagation(); removeMember(decodeURIComponent('${encodeInline(m)}'))" title="刪除 ${escapeHtml(m)}">&times;</button>
     `;
     bar.appendChild(chip);
   });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-member-btn';
+  addBtn.textContent = '+ 新增成員';
+  addBtn.onclick = openAddMemberModal;
+  bar.appendChild(addBtn);
 }
 
 function toggleMembersPanel() {
@@ -2191,8 +2222,30 @@ function removeMember(name) {
   Object.keys(data.subs).forEach(dateStr => {
     if (data.subs[dateStr] === name) delete data.subs[dateStr];
   });
+  Object.keys(data.monthlyTaskSchedules || {}).forEach(monthKey => {
+    const next = data.monthlyTaskSchedules[monthKey].filter(member => member !== name);
+    if (next.length === data.monthlyTaskSchedules[monthKey].length) return;
+    delete data.monthlyTaskSchedules[monthKey];
+  });
   saveData();
   renderAll();
+}
+
+function renderColorPicks(containerId, selectedColor, onSelect) {
+  const picksEl = document.getElementById(containerId);
+  picksEl.innerHTML = '';
+  PALETTE.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-pick' + (c === selectedColor ? ' selected' : '');
+    dot.style.background = c;
+    dot.onclick = () => {
+      selectedColor = c;
+      picksEl.querySelectorAll('.color-pick').forEach(d => d.classList.remove('selected'));
+      dot.classList.add('selected');
+      onSelect(c);
+    };
+    picksEl.appendChild(dot);
+  });
 }
 
 function openAddMemberModal() {
@@ -2210,18 +2263,7 @@ function openAddMemberModal() {
     <button class="close-btn" onclick="closeModal()">取消</button>
   `;
 
-  const picksEl = document.getElementById('colorPicks');
-  PALETTE.forEach(c => {
-    const dot = document.createElement('div');
-    dot.className = 'color-pick' + (c === selectedColor ? ' selected' : '');
-    dot.style.background = c;
-    dot.onclick = () => {
-      selectedColor = c;
-      picksEl.querySelectorAll('.color-pick').forEach(d => d.classList.remove('selected'));
-      dot.classList.add('selected');
-    };
-    picksEl.appendChild(dot);
-  });
+  renderColorPicks('colorPicks', selectedColor, color => { selectedColor = color; });
 
   // Store selected color reference
   window._addMemberColor = () => selectedColor;
@@ -2248,6 +2290,67 @@ function confirmAddMember() {
   data.members.push(name);
   data.colors[name] = color;
   data.schedules = {};
+  data.monthlyTaskSchedules = {};
+  saveData();
+  closeModal();
+  renderAll();
+}
+
+function openEditMemberModal(name) {
+  let selectedColor = getColor(name);
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <div class="modal-kicker">成員設定</div>
+    <div class="modal-title">編輯成員</div>
+    <div class="add-member-form">
+      <input type="text" id="editMemberName" value="${escapeHtml(name)}" maxlength="20" autofocus>
+    </div>
+    <label>選擇顏色</label>
+    <div class="color-picks" id="editColorPicks"></div>
+    <div class="modal-actions">
+      <button class="secondary-btn" onclick="closeModal()">取消</button>
+      <button class="primary-btn" onclick="confirmEditMember(decodeURIComponent('${encodeInline(name)}'))">儲存</button>
+    </div>
+  `;
+  renderColorPicks('editColorPicks', selectedColor, color => { selectedColor = color; });
+  window._editMemberColor = () => selectedColor;
+  openModal();
+  setTimeout(() => document.getElementById('editMemberName')?.focus(), 100);
+  document.getElementById('editMemberName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmEditMember(name);
+  });
+}
+
+function confirmEditMember(oldName) {
+  const input = document.getElementById('editMemberName');
+  const newName = input.value.trim();
+  if (!newName) { input.focus(); return; }
+  if (newName !== oldName && data.members.includes(newName)) {
+    alert(`${newName} 已經在名單中了！`);
+    input.focus();
+    return;
+  }
+
+  data.members = data.members.map(member => member === oldName ? newName : member);
+  const selectedColor = window._editMemberColor();
+  delete data.colors[oldName];
+  data.colors[newName] = selectedColor;
+
+  Object.keys(data.schedules || {}).forEach(monthKey => {
+    Object.keys(data.schedules[monthKey] || {}).forEach(dateStr => {
+      if (data.schedules[monthKey][dateStr] === oldName) data.schedules[monthKey][dateStr] = newName;
+    });
+  });
+  Object.keys(data.leaves || {}).forEach(dateStr => {
+    if (data.leaves[dateStr] === oldName) data.leaves[dateStr] = newName;
+  });
+  Object.keys(data.subs || {}).forEach(dateStr => {
+    if (data.subs[dateStr] === oldName) data.subs[dateStr] = newName;
+  });
+  Object.keys(data.monthlyTaskSchedules || {}).forEach(monthKey => {
+    data.monthlyTaskSchedules[monthKey] = data.monthlyTaskSchedules[monthKey].map(member => member === oldName ? newName : member);
+  });
+
   saveData();
   closeModal();
   renderAll();
