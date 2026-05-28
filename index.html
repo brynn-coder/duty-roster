@@ -684,18 +684,16 @@
     background: #7886a3;
     display: inline-flex;
     flex-shrink: 0;
-    font-size: 0.8rem;
+    font-size: 0.76rem;
+    font-weight: 900;
     height: 42px;
     justify-content: center;
+    letter-spacing: 0;
     padding: 10px 12px;
-    width: 42px;
+    width: auto;
   }
 
-  .month-nav .today-btn svg {
-    display: block;
-    height: 17px;
-    width: 17px;
-  }
+  .month-nav .today-btn svg { display: none; }
 
   .reroll-btn {
     align-items: center;
@@ -1524,11 +1522,7 @@
           <select class="date-select day-select" id="daySelect" onchange="handleDateSelectChange(true)"></select>
         </div>
         <button class="today-btn" onclick="goCurrentMonth()" title="回到今天" aria-label="回到今天">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3.5" y="4.5" width="17" height="16" rx="2.5"></rect>
-            <path d="M8 2.5v4M16 2.5v4M3.5 10h17"></path>
-            <text x="12" y="17.4" fill="currentColor" stroke="none" text-anchor="middle" font-size="7.2" font-weight="800">今</text>
-          </svg>
+          <span>Today</span>
         </button>
       </div>
       <button class="month-arrow" onclick="changeMonth(1)" aria-label="下個月">
