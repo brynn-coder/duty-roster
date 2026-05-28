@@ -333,7 +333,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin: 2px 0 10px;
+    margin: 0;
   }
 
   .monthly-duty-label {
@@ -356,27 +356,45 @@
   }
 
   .task-section {
-    border-top: 1px solid #eef1f6;
+    background: #fff;
+    border: 1px solid #eef1f6;
+    border-radius: 12px;
     display: grid;
-    gap: 10px;
-    grid-template-columns: 104px minmax(0, 1fr);
-    padding: 10px 0;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 10px;
+    padding: 12px;
   }
 
   .task-section:first-of-type {
-    border-top: none;
-    padding-top: 0;
+    margin-top: 10px;
   }
 
-  .task-badge {
-    align-self: start;
-    background: var(--soft-2);
-    border-radius: 999px;
+  .task-section-head {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .task-section-title {
+    align-items: center;
     color: var(--ink);
-    font-size: 0.78rem;
-    font-weight: 800;
-    padding: 6px 9px;
-    text-align: center;
+    display: inline-flex;
+    font-size: 0.86rem;
+    font-weight: 900;
+    gap: 8px;
+  }
+
+  .task-icon {
+    align-items: center;
+    background: var(--soft-2);
+    border-radius: 10px;
+    color: #5e687f;
+    display: inline-flex;
+    height: 28px;
+    justify-content: center;
+    width: 28px;
   }
 
   .task-section ol,
@@ -384,14 +402,14 @@
     color: #4a5469;
     font-size: 0.84rem;
     line-height: 1.62;
-    padding-left: 20px;
+    padding-left: 22px;
   }
 
   .task-section ul {
     list-style: disc;
   }
 
-  .task-section.is-a ol {
+  .task-section.daily-tasks ol {
     columns: 2;
     column-gap: 28px;
   }
@@ -1463,7 +1481,8 @@
     .cal-avatar { height: 30px; width: 30px; }
     .cal-name { font-size: 0.68rem; }
     .task-section { grid-template-columns: 1fr; }
-    .task-section.is-a ol { columns: 1; }
+    .task-section.daily-tasks ol { columns: 1; }
+    .task-section-head { align-items: flex-start; flex-direction: column; }
     .task-badge { justify-self: start; }
     .assignment-stack { grid-template-columns: 1fr; }
     .assignment-card { min-height: 0; }
@@ -2424,13 +2443,31 @@ function renderDutyOverview() {
   const tasks = normalizeWorkTasks(data.workTasks);
   const monthlyPeople = getMonthlyTaskAssignees(currentMonthDate);
   const bodyHtml = workContentOpen ? `
-    <div class="task-section">
-      <div class="task-badge">日常</div>
+    <div class="task-section daily-tasks">
+      <div class="task-section-head">
+        <div class="task-section-title">
+          <span class="task-icon">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 11 12 14 22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+          </span>
+          <span>日常</span>
+        </div>
+      </div>
       <ol>${tasks.daily.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
     </div>
     <div class="task-section">
-      <div class="task-badge">每月一次</div>
-      <div>
+      <div class="task-section-head">
+        <div class="task-section-title">
+          <span class="task-icon">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+              <path d="M16 2v4M8 2v4M3 10h18"></path>
+            </svg>
+          </span>
+          <span>每月一次</span>
+        </div>
         <div class="monthly-duty-people">
           <span class="monthly-duty-label">本月負責</span>
           ${monthlyPeople.map(name => `
@@ -2440,11 +2477,20 @@ function renderDutyOverview() {
             </span>
           `).join('')}
         </div>
-        <ol>${tasks.monthly.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
       </div>
+      <ol>${tasks.monthly.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ol>
     </div>
     <div class="task-section">
-      <div class="task-badge">不定時</div>
+      <div class="task-section-head">
+        <div class="task-section-title">
+          <span class="task-icon">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2 3 14h8l-1 8 10-12h-8Z"></path>
+            </svg>
+          </span>
+          <span>不定時</span>
+        </div>
+      </div>
       <ul>${tasks.adhoc.map(task => `<li>${escapeHtml(task)}</li>`).join('') || '<li>尚未設定</li>'}</ul>
     </div>
   ` : '';
