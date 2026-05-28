@@ -1452,14 +1452,32 @@
 
   /* Responsive */
   @media (max-width: 720px) {
-    body { padding: 14px; }
-    .app-shell { padding: 20px 14px; border-radius: 14px; }
-    .month-nav { flex-wrap: wrap; gap: 8px; }
-    .date-picker { order: -1; flex-basis: 100%; min-width: 0; }
+    body { padding: 10px; }
+    .app-shell { padding: 18px 12px; border-radius: 14px; }
+    .title-area h1 { font-size: 1.35rem; }
+    .subtitle { font-size: 0.82rem; line-height: 1.45; }
+    .month-nav { flex-wrap: wrap; gap: 8px; padding: 8px; }
+    .date-picker {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) 58px;
+      order: -1;
+      flex-basis: 100%;
+      min-width: 0;
+      width: 100%;
+    }
     .month-nav > button.month-arrow { flex: 1; }
-    .date-picker { justify-content: center; }
+    .date-icon,
+    .month-nav .today-btn { height: 42px; width: 100%; }
     .date-picker .today-btn { flex: 0 0 auto; }
-    .selected-date-pill { flex: 1; text-align: center; }
+    .selected-date-pill {
+      flex: 1;
+      font-size: clamp(0.78rem, 3.2vw, 0.9rem);
+      min-width: 0;
+      overflow: hidden;
+      padding: 10px 8px;
+      text-align: center;
+      text-overflow: ellipsis;
+    }
     .date-popover { left: 0; min-width: 100%; right: 0; transform: none; }
     .date-select { flex: 1; min-width: 0; }
     .sub-toolbar { align-items: stretch; flex-direction: column; }
@@ -1470,12 +1488,12 @@
     .preview-switch button { flex: 1; min-width: 0; }
     .members-toggle { justify-content: center; width: 100%; }
     .members-bar { margin-top: -4px; }
-    .month-nav button { padding: 10px 12px; }
+    .month-nav button { padding: 10px 10px; }
     .month-nav .month-arrow { min-width: 0; }
     .duty-overview { grid-template-columns: 1fr; }
     .calendar-view { gap: 4px; }
     .cal-cell,
-    .cal-cell.empty { min-height: 86px; padding: 8px 2px 6px; }
+    .cal-cell.empty { min-height: 82px; padding: 8px 2px 6px; }
     .cal-avatar { height: 30px; width: 30px; }
     .cal-name { font-size: 0.68rem; }
     .task-section { grid-template-columns: 1fr; }
