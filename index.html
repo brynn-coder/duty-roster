@@ -1006,6 +1006,113 @@
     text-align: center;
   }
 
+  /* Calendar View (mobile month) */
+  .calendar-view {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-bottom: 30px;
+  }
+
+  .cal-header-cell {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7886a3;
+    padding: 6px 0;
+  }
+
+  .cal-cell {
+    background: #fff;
+    border: 1px solid #e7eaf0;
+    border-radius: 10px;
+    padding: 8px 2px 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: rgba(74,84,105,0.08);
+  }
+
+  .cal-cell:active {
+    background: #eef1f6;
+  }
+
+  .cal-cell.today {
+    border-color: #4a5469;
+    border-width: 2px;
+    box-shadow: 0 2px 8px rgba(74,84,105,0.15);
+  }
+
+  .cal-cell.today::after {
+    content: "今天";
+    display: block;
+    font-size: 0.55rem;
+    color: #fff;
+    background: #4a5469;
+    border-radius: 999px;
+    padding: 1px 4px;
+    margin: 2px auto 0;
+    width: fit-content;
+  }
+
+  .cal-cell.empty {
+    border: none;
+    background: transparent;
+    cursor: default;
+  }
+
+  .cal-date {
+    display: block;
+    font-size: 0.72rem;
+    color: #7886a3;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .cal-cell.today .cal-date {
+    color: #4a5469;
+    font-weight: 700;
+  }
+
+  .cal-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 auto 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .cal-name {
+    display: block;
+    font-size: 0.68rem;
+    color: #4a5469;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cal-name.on-leave {
+    text-decoration: line-through;
+    color: #afb7ca;
+    font-size: 0.6rem;
+  }
+
+  .cal-sub {
+    display: block;
+    font-size: 0.58rem;
+    color: #e67e22;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   /* Responsive */
   @media (max-width: 720px) {
     body { padding: 14px; }
@@ -1807,6 +1914,64 @@ function confirmAddMember() {
 }
 
 // ─── Schedule ───
+function isMobileView() {
+  return window.innerWidth <= 720;
+}
+
+function renderCalendarView(container, dates) {
+  container.className = 'calendar-view';
+
+  DAY_NAMES.forEach(name => {
+    const h = document.createElement('div');
+    h.className = 'cal-header-cell';
+    h.textContent = name;
+    container.appendChild(h);
+  });
+
+  const firstDow = dates[0].getDay();
+  for (let i = 1; i < firstDow; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    container.appendChild(empty);
+  }
+
+  dates.forEach(d => {
+    const ds = formatDate(d);
+    const original = getOriginalAssignment(ds);
+    const isOnLeave = data.leaves[ds] === original;
+    const sub = data.subs[ds];
+    const displayPerson = isOnLeave && sub ? sub : original;
+    const today = isToday(d);
+
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (today ? ' today' : '');
+    cell.onclick = () => openDayManage(ds, original);
+
+    let html = `<span class="cal-date">${d.getDate()}</span>`;
+    html += `<div class="cal-avatar" style="background:${getColor(displayPerson)}">${escapeHtml(displayPerson ? displayPerson[0] : '?')}</div>`;
+
+    if (isOnLeave && sub) {
+      html += `<span class="cal-name on-leave">${escapeHtml(original)}</span>`;
+      html += `<span class="cal-sub">→${escapeHtml(sub)}</span>`;
+    } else if (isOnLeave && !sub) {
+      html += `<span class="cal-name on-leave">${escapeHtml(original)}</span>`;
+      html += `<span class="cal-sub">⚠️</span>`;
+    } else {
+      html += `<span class="cal-name">${escapeHtml(displayPerson)}</span>`;
+    }
+
+    cell.innerHTML = html;
+    container.appendChild(cell);
+  });
+
+  const lastDow = dates[dates.length - 1].getDay();
+  for (let i = lastDow + 1; i <= 5; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    container.appendChild(empty);
+  }
+}
+
 function renderSchedule() {
   const dates = getPreviewDates();
   getMonthSchedule(currentMonthDate);
@@ -1816,6 +1981,7 @@ function renderSchedule() {
 
   const scheduleEl = document.getElementById('schedule');
   scheduleEl.innerHTML = '';
+  scheduleEl.className = 'schedule';
 
   if (data.members.length === 0) {
     scheduleEl.innerHTML = '<div class="no-members">請先新增成員</div>';
@@ -1824,6 +1990,11 @@ function renderSchedule() {
 
   if (dates.length === 0) {
     scheduleEl.innerHTML = '<div class="empty-state">選擇的日期不是週一到週五，沒有值日生排班</div>';
+    return;
+  }
+
+  if (isMobileView() && previewMode === 'month') {
+    renderCalendarView(scheduleEl, dates);
     return;
   }
 
