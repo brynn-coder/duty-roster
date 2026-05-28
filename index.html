@@ -1523,10 +1523,11 @@
           <select class="date-select month-select" id="monthSelect" onchange="handleDateSelectChange()"></select>
           <select class="date-select day-select" id="daySelect" onchange="handleDateSelectChange(true)"></select>
         </div>
-        <button class="today-btn" onclick="goCurrentMonth()" title="回到今日" aria-label="回到今日">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
-            <path d="M21 3v6h-6"></path>
+        <button class="today-btn" onclick="goCurrentMonth()" title="回到今天" aria-label="回到今天">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3.5" y="4.5" width="17" height="16" rx="2.5"></rect>
+            <path d="M8 2.5v4M16 2.5v4M3.5 10h17"></path>
+            <circle cx="12" cy="15.5" r="2.6"></circle>
           </svg>
         </button>
       </div>
