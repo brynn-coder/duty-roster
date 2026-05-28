@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>值日生排班表</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(175,183,202,0.45), transparent 34%),
+      linear-gradient(135deg, #f7f8fb 0%, #eef1f6 100%);
+    color: #333;
+    min-height: 100vh;
+    padding: 28px 20px;
+  }
+
+  .container {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  .app-shell {
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(214,219,228,0.9);
+    border-radius: 18px;
+    box-shadow: 0 18px 42px rgba(74,84,105,0.12);
+    padding: 28px;
+  }
+
+  /* Editable Title */
+  .title-area {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .title-area h1 {
+    font-size: 1.6rem;
+    color: #4a5469;
+    display: inline-block;
+    cursor: pointer;
+    border-bottom: 2px dashed transparent;
+    transition: border-color 0.2s;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .title-area h1:hover {
+    border-bottom-color: #afb7ca;
+    background: rgba(74,84,105,0.04);
+  }
+
+  .title-area input {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #4a5469;
+    text-align: center;
+    border: 2px solid #4a5469;
+    border-radius: 8px;
+    padding: 4px 12px;
+    outline: none;
+    background: #fff;
+    width: 320px;
+    max-width: 90vw;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #7886a3;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .subtitle span {
+    border-bottom: 1px dashed transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 3px 8px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .subtitle span:hover {
+    background: rgba(74,84,105,0.04);
+    border-bottom-color: #afb7ca;
+  }
+
+  .subtitle input {
+    background: #fff;
+    border: 1px solid #afb7ca;
+    border-radius: 8px;
+    color: #5e687f;
+    font-size: 0.9rem;
+    outline: none;
+    padding: 7px 10px;
+    text-align: center;
+    width: min(420px, 90vw);
+  }
+
+  .sync-status {
+    align-items: center;
+    color: #7886a3;
+    display: flex;
+    font-size: 0.76rem;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+
+  .sync-dot {
+    background: #afb7ca;
+    border-radius: 50%;
+    height: 7px;
+    width: 7px;
+  }
+
+  .sync-status.online .sync-dot { background: #27ae60; }
+  .sync-status.offline .sync-dot { background: #e67e22; }
+  .sync-status.syncing .sync-dot { background: #7886a3; }
+
+  /* Members Bar */
+  .members-toggle {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 10px;
+    color: #4a5469;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.86rem;
+    font-weight: 700;
+    gap: 7px;
+    padding: 9px 12px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    white-space: nowrap;
+  }
+
+  .members-toggle:hover,
+  .members-toggle.active {
+    background: #f7f8fb;
+    border-color: #7886a3;
+    box-shadow: 0 4px 12px rgba(74,84,105,0.1);
+  }
+
+  .members-toggle svg,
+  .date-icon svg {
+    display: block;
+    height: 17px;
+    width: 17px;
+  }
+
+  .members-bar {
+    display: none;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: -8px auto 20px;
+    max-width: 920px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 14px;
+    flex-wrap: wrap;
+  }
+
+  .members-bar.active { display: flex; }
+
+  .member-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border-radius: 999px;
+    padding: 5px 12px 5px 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #4a5469;
+  }
+
+  .member-chip .chip-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .member-chip .remove-member {
+    margin-left: 4px;
+    background: none;
+    border: none;
+    color: #afb7ca;
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 2px;
+    transition: color 0.2s;
+  }
+
+  .member-chip .remove-member:hover { color: #e74c3c; }
+
+  .add-member-btn {
+    background: #fff;
+    border: 2px dashed #afb7ca;
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    color: #7886a3;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .add-member-btn:hover {
+    border-color: #4a5469;
+    color: #4a5469;
+  }
+
+  /* Month Navigation */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 6px auto 12px;
+    padding: 12px;
+    background: #f7f8fb;
+    border: 1px solid #d6dbe4;
+    border-radius: 14px;
+    max-width: 920px;
+  }
+
+  .sub-toolbar {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 0 auto 18px;
+    max-width: 920px;
+  }
+
+  .secondary-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .month-nav button {
+    background: #4a5469;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .month-nav button:hover { background: #5e687f; }
+
+  .month-nav .month-arrow {
+    min-width: 116px;
+  }
+
+  .date-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 320px;
+    position: relative;
+  }
+
+  .date-icon {
+    align-items: center;
+    background: #4a5469;
+    border-radius: 10px;
+    color: #fff;
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 40px;
+    justify-content: center;
+    width: 40px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+
+  .date-icon:hover,
+  .date-icon.active {
+    background: #5e687f;
+    box-shadow: 0 4px 12px rgba(74,84,105,0.16);
+  }
+
+  .selected-date-pill {
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 999px;
+    color: #4a5469;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    white-space: nowrap;
+  }
+
+  .date-popover {
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 14px;
+    box-shadow: 0 16px 34px rgba(74,84,105,0.18);
+    display: none;
+    gap: 8px;
+    left: 50%;
+    min-width: 330px;
+    padding: 12px;
+    position: absolute;
+    top: calc(100% + 10px);
+    transform: translateX(-50%);
+    z-index: 50;
+  }
+
+  .date-popover.active {
+    display: flex;
+  }
+
+  .date-select {
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, #7886a3 50%) right 12px center / 6px 6px no-repeat,
+      linear-gradient(135deg, #7886a3 50%, transparent 50%) right 8px center / 6px 6px no-repeat,
+      #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 10px;
+    color: #4a5469;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-height: 40px;
+    outline: none;
+    padding: 8px 28px 8px 12px;
+  }
+
+  .date-select.year-select {
+    min-width: 92px;
+  }
+
+  .date-select.month-select,
+  .date-select.day-select {
+    min-width: 78px;
+  }
+
+  .date-select:focus {
+    border-color: #7886a3;
+    box-shadow: 0 0 0 3px rgba(120,134,163,0.16);
+  }
+
+  .month-nav .today-btn {
+    align-items: center;
+    background: #7886a3;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    height: 40px;
+    justify-content: center;
+    padding: 10px 12px;
+    width: 40px;
+  }
+
+  .month-nav .today-btn svg {
+    display: block;
+    height: 17px;
+    width: 17px;
+  }
+
+  .reroll-btn {
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 10px;
+    color: #5e687f;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 10px 12px;
+    transition: border-color 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+
+  .reroll-btn:hover {
+    background: #eef1f6;
+    border-color: #7886a3;
+    color: #4a5469;
+  }
+
+  .preview-switch {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin: 0;
+    padding: 5px;
+    width: fit-content;
+    max-width: 100%;
+    background: #eef1f6;
+    border: 1px solid #d6dbe4;
+    border-radius: 12px;
+  }
+
+  .preview-switch button {
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #5e687f;
+    cursor: pointer;
+    font-size: 0.86rem;
+    font-weight: 600;
+    min-width: 76px;
+    padding: 8px 14px;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+
+  .preview-switch button.active {
+    background: #fff;
+    color: #4a5469;
+    box-shadow: 0 4px 12px rgba(74,84,105,0.12);
+  }
+
+  .preview-note {
+    color: #7886a3;
+    font-size: 0.82rem;
+    margin: -12px auto 18px;
+    text-align: center;
+  }
+
+  /* Schedule Grid */
+  .schedule {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+
+  .day-card {
+    background: #fff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    box-shadow: 0 8px 20px rgba(74,84,105,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    min-height: 178px;
+  }
+
+  .day-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  .day-card.today {
+    border-color: #4a5469;
+    box-shadow: 0 10px 24px rgba(74,84,105,0.18);
+  }
+
+  .day-card.today::before {
+    content: "今天";
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #4a5469;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .day-card .day-name {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: #eef1f6;
+    color: #5e687f;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    margin-bottom: 8px;
+  }
+
+  .day-card .day-date {
+    color: #4a5469;
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 3px;
+  }
+
+  .day-card .full-date {
+    color: #7886a3;
+    font-size: 0.75rem;
+    margin-bottom: 14px;
+  }
+
+  .day-card .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .day-card .person-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4a5469;
+    margin-bottom: 4px;
+    min-height: 1.3em;
+  }
+
+  .day-card .person-name.on-leave {
+    text-decoration: line-through;
+    color: #afb7ca;
+    font-size: 0.85rem;
+  }
+
+  .day-card .sub-info {
+    font-size: 0.78rem;
+    color: #e67e22;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .day-card .actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .day-card .actions button {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #d6dbe4;
+    background: #fff;
+    color: #5e687f;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .day-card .actions button:hover {
+    background: #4a5469;
+    color: #fff;
+    border-color: #4a5469;
+  }
+
+  .day-card .actions button.manage-leave {
+    color: #7886a3;
+  }
+
+  .day-card .actions button.cancel-leave {
+    border-color: #e74c3c;
+    color: #e74c3c;
+  }
+
+  .day-card .actions button.cancel-leave:hover {
+    background: #e74c3c;
+    color: #fff;
+  }
+
+  /* Stats */
+  .stats-section h2 {
+    font-size: 1.1rem;
+    color: #4a5469;
+    margin-bottom: 12px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-head h2 {
+    margin-bottom: 0;
+  }
+
+  .section-note {
+    font-size: 0.78rem;
+    color: #7886a3;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(74,84,105,0.06);
+  }
+
+  .stat-card .stat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin: 0 auto 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 700;
+  }
+
+  .stat-card .stat-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a5469;
+    margin-bottom: 8px;
+  }
+
+  .stat-card .stat-row {
+    font-size: 0.75rem;
+    color: #7886a3;
+    margin-bottom: 3px;
+  }
+
+  .stat-card .stat-row span {
+    font-weight: 600;
+    color: #4a5469;
+  }
+
+  .stat-card .owe {
+    color: #e74c3c;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+
+  .stat-card .surplus {
+    color: #27ae60;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    padding: 22px;
+    width: 390px;
+    max-width: 92vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+
+  .modal h3 {
+    font-size: 1rem;
+    color: #4a5469;
+    margin-bottom: 16px;
+  }
+
+  .modal .modal-kicker {
+    color: #7886a3;
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .modal .modal-title {
+    color: #4a5469;
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .modal .modal-summary {
+    background: #f7f8fb;
+    border: 1px solid #d6dbe4;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+  }
+
+  .modal .summary-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    color: #4a5469;
+    font-size: 0.88rem;
+    padding: 6px 0;
+  }
+
+  .modal .summary-row + .summary-row {
+    border-top: 1px solid #e7eaf0;
+  }
+
+  .modal .summary-label {
+    color: #7886a3;
+    flex-shrink: 0;
+  }
+
+  .modal .summary-value {
+    font-weight: 700;
+    text-align: right;
+  }
+
+  .modal .modal-help {
+    color: #7886a3;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin: -4px 0 16px;
+  }
+
+  .modal .pick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .modal .pick-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d6dbe4;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .modal .pick-item:hover {
+    border-color: #4a5469;
+    background: #f7f8fa;
+  }
+
+  .modal .pick-item .mini-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .modal .pick-item .pick-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #4a5469;
+  }
+
+  .modal .pick-item .pick-hint {
+    font-size: 0.75rem;
+    color: #afb7ca;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .modal .pick-item.recommended {
+    border-color: #7886a3;
+    background: #f0f3f8;
+  }
+
+  .modal .pick-item.recommended .pick-hint {
+    color: #4a5469;
+    font-weight: 600;
+  }
+
+  .modal .manage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .modal .manage-option {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d6dbe4;
+    border-radius: 12px;
+    color: #4a5469;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+    width: 100%;
+  }
+
+  .modal .manage-option:hover {
+    background: #f7f8fb;
+    border-color: #7886a3;
+  }
+
+  .modal .manage-option .option-icon {
+    align-items: center;
+    background: #eef1f6;
+    border-radius: 10px;
+    color: #4a5469;
+    display: inline-flex;
+    flex: 0 0 34px;
+    height: 34px;
+    justify-content: center;
+    width: 34px;
+  }
+
+  .modal .manage-option .option-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .modal .manage-option .option-hint {
+    color: #7886a3;
+    display: block;
+    font-size: 0.76rem;
+    margin-top: 2px;
+  }
+
+  .modal .close-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    background: #d6dbe4;
+    color: #4a5469;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .modal .close-btn:hover { background: #afb7ca; }
+
+  .modal .modal-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .modal .modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .modal .modal-actions .primary-btn {
+    background: #4a5469;
+    color: #fff;
+  }
+
+  .modal .modal-actions .primary-btn:hover {
+    background: #5e687f;
+  }
+
+  .modal .modal-actions .danger-btn {
+    background: #c0392b;
+    color: #fff;
+  }
+
+  .modal .modal-actions .danger-btn:hover {
+    background: #a93226;
+  }
+
+  .modal .modal-actions .secondary-btn {
+    background: #d6dbe4;
+    color: #4a5469;
+  }
+
+  /* Add member modal */
+  .modal .add-member-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .modal .add-member-form input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #d6dbe4;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .modal .add-member-form input:focus {
+    border-color: #4a5469;
+  }
+
+  .modal .add-member-form button {
+    padding: 10px 16px;
+    background: #4a5469;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .modal .add-member-form button:hover { background: #5e687f; }
+
+  .modal .color-picks {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .modal .color-pick {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .modal .color-pick:hover { transform: scale(1.15); }
+  .modal .color-pick.selected { border-color: #333; }
+
+  .modal label {
+    display: block;
+    font-size: 0.8rem;
+    color: #7886a3;
+    margin-bottom: 6px;
+  }
+
+  /* Reset */
+  .reset-section {
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .reset-btn {
+    font-size: 0.8rem;
+    color: #afb7ca;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .reset-btn:hover { color: #e74c3c; }
+
+  /* No member warning */
+  .no-members {
+    text-align: center;
+    padding: 40px;
+    color: #afb7ca;
+    font-size: 1rem;
+    grid-column: 1 / -1;
+  }
+
+  .empty-state {
+    background: #fff;
+    border: 1px dashed #afb7ca;
+    border-radius: 12px;
+    color: #7886a3;
+    grid-column: 1 / -1;
+    padding: 34px 20px;
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    body { padding: 14px; }
+    .app-shell { padding: 20px 14px; border-radius: 14px; }
+    .month-nav { flex-wrap: wrap; }
+    .date-picker { order: -1; flex-basis: 100%; min-width: 0; }
+    .month-nav > button.month-arrow { flex: 1; }
+    .date-picker { justify-content: center; }
+    .date-picker .today-btn { flex: 0 0 auto; }
+    .selected-date-pill { flex: 1; text-align: center; }
+    .date-popover { left: 0; min-width: 100%; right: 0; transform: none; }
+    .date-select { flex: 1; min-width: 0; }
+    .sub-toolbar { align-items: stretch; flex-direction: column; }
+    .secondary-actions { display: flex; }
+    .secondary-actions .members-toggle { flex: 1; width: auto; }
+    .secondary-actions .reroll-btn { flex: 0 0 82px; }
+    .preview-switch { width: 100%; }
+    .preview-switch button { flex: 1; min-width: 0; }
+    .members-toggle { justify-content: center; width: 100%; }
+    .schedule { grid-template-columns: repeat(1, 1fr); }
+    .section-head { align-items: flex-start; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="app-shell">
+    <div class="title-area" id="titleArea"></div>
+    <p class="subtitle" id="subtitleArea"></p>
+    <div class="sync-status offline" id="syncStatus">
+      <span class="sync-dot"></span>
+      <span id="syncText">單機模式</span>
+    </div>
+
+    <div class="month-nav">
+      <button class="month-arrow" onclick="changeMonth(-1)">&larr; 上個月</button>
+      <div class="date-picker">
+        <button class="date-icon" id="dateToggle" type="button" title="選擇日期" onclick="toggleDatePicker()" aria-expanded="false" aria-controls="datePopover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+            <path d="M16 2v4M8 2v4M3 10h18"></path>
+          </svg>
+        </button>
+        <span class="selected-date-pill" id="selectedDateLabel"></span>
+        <div class="date-popover" id="datePopover">
+          <select class="date-select year-select" id="yearSelect" onchange="handleDateSelectChange()"></select>
+          <select class="date-select month-select" id="monthSelect" onchange="handleDateSelectChange()"></select>
+          <select class="date-select day-select" id="daySelect" onchange="handleDateSelectChange(true)"></select>
+        </div>
+        <button class="today-btn" onclick="goCurrentMonth()" title="回到今日" aria-label="回到今日">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+            <path d="M21 3v6h-6"></path>
+          </svg>
+        </button>
+      </div>
+      <button class="month-arrow" onclick="changeMonth(1)">下個月 &rarr;</button>
+    </div>
+
+    <div class="sub-toolbar">
+      <div class="preview-switch" id="previewSwitch" aria-label="排班預覽範圍">
+        <button type="button" data-preview="today" onclick="setPreviewMode('today')">當日</button>
+        <button type="button" data-preview="week" onclick="setPreviewMode('week')">本週</button>
+        <button type="button" data-preview="month" onclick="setPreviewMode('month')">本月</button>
+      </div>
+      <div class="secondary-actions">
+        <button class="members-toggle" id="membersToggle" type="button" onclick="toggleMembersPanel()" aria-expanded="false" aria-controls="membersBar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>成員 <span id="memberCountText"></span></span>
+        </button>
+        <button class="reroll-btn" onclick="rerollCurrentMonth()" title="重新隨機排班">重排</button>
+      </div>
+    </div>
+
+    <div class="members-bar" id="membersBar"></div>
+    <div class="preview-note" id="previewNote"></div>
+
+    <div class="schedule" id="schedule"></div>
+
+    <div class="stats-section">
+      <div class="section-head">
+        <h2>值班統計</h2>
+        <span class="section-note" id="statsNote"></span>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="reset-section">
+      <button class="reset-btn" onclick="resetAll()">重置所有資料</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal (shared for substitute picker & add member) -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const STORAGE_KEY = 'duty-roster-data';
+const API_PATH = '/api/data';
+const SYNC_ENABLED = location.protocol === 'http:' || location.protocol === 'https:';
+const SYNC_CONFIG = window.DUTY_ROSTER_CONFIG || {};
+const SUPABASE_TABLE = SYNC_CONFIG.tableName || 'duty_roster_state';
+const SUPABASE_RECORD_ID = SYNC_CONFIG.recordId || 'main';
+const PALETTE = [
+  '#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#2ecc71',
+  '#1abc9c', '#3498db', '#4a5469', '#8e44ad', '#e84393',
+  '#6c5ce7', '#00b894', '#fd79a8', '#636e72', '#d63031'
+];
+const DAY_NAMES = ['週一', '週二', '週三', '週四', '週五'];
+
+const DEFAULT_DATA = {
+  title: '📋 值日生排班表',
+  subtitle: '週一到週五 · 隨機平均排班 · 請假補位 · 月份檢視',
+  members: ['Vivian', 'Hannah', 'Katie', 'Brynn', 'Amber'],
+  colors: {
+    Vivian: '#e74c3c',
+    Hannah: '#e67e22',
+    Katie:  '#27ae60',
+    Brynn:  '#4a5469',
+    Amber:  '#8e44ad'
+  },
+  leaves: {},
+  subs: {},
+  schedules: {}
+};
+
+let currentMonthDate = new Date();
+currentMonthDate.setDate(1);
+currentMonthDate.setHours(0, 0, 0, 0);
+let currentViewDate = new Date();
+currentViewDate.setHours(0, 0, 0, 0);
+let previewMode = 'month';
+let membersPanelOpen = false;
+let datePickerOpen = false;
+let data = loadData();
+let syncReady = false;
+let syncTimer = null;
+let isApplyingRemoteData = false;
+let remoteDataWasEmpty = false;
+let supabaseClient = null;
+
+function loadData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    // Migrate old format
+    if (!parsed.members) {
+      return {
+        ...DEFAULT_DATA,
+        leaves: parsed.leaves || {},
+        subs: parsed.subs || {},
+        schedules: parsed.schedules || {}
+      };
+    }
+    parsed.colors = parsed.colors || {};
+    parsed.leaves = parsed.leaves || {};
+    parsed.subs = parsed.subs || {};
+    parsed.schedules = parsed.schedules || {};
+    parsed.subtitle = parsed.subtitle || DEFAULT_DATA.subtitle;
+    return parsed;
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData(options = {}) {
+  if (!isApplyingRemoteData) {
+    data.updatedAt = Date.now();
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if (options.remote !== false) queueRemoteSave();
+}
+
+function setSyncStatus(state, text) {
+  const status = document.getElementById('syncStatus');
+  const label = document.getElementById('syncText');
+  if (!status || !label) return;
+  status.className = `sync-status ${state}`;
+  label.textContent = text;
+}
+
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  if (!SYNC_CONFIG.supabaseUrl || !SYNC_CONFIG.supabaseAnonKey || !window.supabase) return null;
+  supabaseClient = window.supabase.createClient(SYNC_CONFIG.supabaseUrl, SYNC_CONFIG.supabaseAnonKey);
+  return supabaseClient;
+}
+
+function getSyncMode() {
+  if (!SYNC_ENABLED) return 'local';
+  return getSupabaseClient() ? 'supabase' : 'api';
+}
+
+function queueRemoteSave() {
+  if (!SYNC_ENABLED || !syncReady || isApplyingRemoteData) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushRemoteData, 450);
+}
+
+async function pushRemoteData() {
+  const syncMode = getSyncMode();
+  if (syncMode === 'local') return;
+  try {
+    setSyncStatus('syncing', '同步中');
+    if (syncMode === 'supabase') {
+      const client = getSupabaseClient();
+      const { error } = await client
+        .from(SUPABASE_TABLE)
+        .upsert({
+          id: SUPABASE_RECORD_ID,
+          payload: data,
+          updated_at: new Date().toISOString()
+        });
+      if (error) throw error;
+    } else {
+      const res = await fetch(API_PATH, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    }
+    setSyncStatus('online', '已同步');
+  } catch (err) {
+    setSyncStatus('offline', '同步失敗，暫存本機');
+  }
+}
+
+async function pullRemoteData() {
+  const syncMode = getSyncMode();
+  if (syncMode === 'local') {
+    setSyncStatus('offline', '單機模式');
+    return false;
+  }
+
+  try {
+    setSyncStatus('syncing', '讀取同步資料');
+    let remoteData;
+
+    if (syncMode === 'supabase') {
+      const client = getSupabaseClient();
+      const { data: row, error } = await client
+        .from(SUPABASE_TABLE)
+        .select('payload, updated_at')
+        .eq('id', SUPABASE_RECORD_ID)
+        .maybeSingle();
+      if (error) throw error;
+      remoteData = row?.payload || {};
+    } else {
+      const res = await fetch(API_PATH, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      remoteData = await res.json();
+    }
+
+    remoteDataWasEmpty = !remoteData || Object.keys(remoteData).length === 0;
+
+    if (!remoteDataWasEmpty) {
+      const localUpdated = Number(data.updatedAt || 0);
+      const remoteUpdated = Number(remoteData.updatedAt || 0);
+      if (remoteUpdated >= localUpdated || localUpdated === 0) {
+        isApplyingRemoteData = true;
+        data = normalizeData(remoteData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        isApplyingRemoteData = false;
+      }
+    }
+
+    syncReady = true;
+    setSyncStatus('online', syncMode === 'supabase' ? 'Supabase 已同步' : '已同步');
+    return true;
+  } catch (err) {
+    syncReady = false;
+    setSyncStatus('offline', '單機模式');
+    return false;
+  }
+}
+
+function normalizeData(raw) {
+  const parsed = raw || {};
+  return {
+    ...DEFAULT_DATA,
+    ...parsed,
+    subtitle: parsed.subtitle || DEFAULT_DATA.subtitle,
+    colors: parsed.colors || DEFAULT_DATA.colors,
+    leaves: parsed.leaves || {},
+    subs: parsed.subs || {},
+    schedules: parsed.schedules || {}
+  };
+}
+
+async function refreshRemoteData() {
+  if (!SYNC_ENABLED || !syncReady) return;
+  const currentUpdated = Number(data.updatedAt || 0);
+  const pulled = await pullRemoteData();
+  if (pulled && Number(data.updatedAt || 0) !== currentUpdated) {
+    renderAll();
+  }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[char]);
+}
+
+function encodeInline(value) {
+  return encodeURIComponent(String(value));
+}
+
+function formatDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatShort(d) {
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function formatLongDate(d) {
+  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
+}
+
+function formatLongDateWithWeekday(d) {
+  const weekday = DAY_NAMES[d.getDay() - 1] || '週末';
+  return `${formatLongDate(d)}（${weekday}）`;
+}
+
+function parseDateString(dateStr) {
+  return new Date(dateStr + 'T00:00:00');
+}
+
+function formatMonthInput(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+}
+
+function formatMonthLabel(d) {
+  return `${d.getFullYear()} 年 ${d.getMonth() + 1} 月`;
+}
+
+function getMonthKey(d) {
+  return formatMonthInput(d);
+}
+
+function shuffleList(list) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildMonthSchedule(monthDate) {
+  const dates = getMonthWeekdays(monthDate);
+  const schedule = {};
+  const shuffledMembers = shuffleList(data.members);
+  const baseCount = Math.floor(dates.length / data.members.length);
+  const extraCount = dates.length % data.members.length;
+  const remaining = {};
+  const lastByWeekday = {};
+  let previousPerson = null;
+
+  shuffledMembers.forEach((name, index) => {
+    remaining[name] = baseCount + (index < extraCount ? 1 : 0);
+  });
+
+  dates.forEach((d) => {
+    const weekday = d.getDay();
+    let candidates = data.members.filter(name => remaining[name] > 0);
+
+    const avoidSameWeekday = candidates.filter(name => name !== lastByWeekday[weekday]);
+    if (avoidSameWeekday.length > 0) candidates = avoidSameWeekday;
+
+    const avoidPreviousDay = candidates.filter(name => name !== previousPerson);
+    if (avoidPreviousDay.length > 0) candidates = avoidPreviousDay;
+
+    const maxRemaining = Math.max(...candidates.map(name => remaining[name]));
+    candidates = candidates.filter(name => remaining[name] === maxRemaining);
+
+    const person = shuffleList(candidates)[0];
+    schedule[formatDate(d)] = person;
+    remaining[person]--;
+    lastByWeekday[weekday] = person;
+    previousPerson = person;
+  });
+
+  return schedule;
+}
+
+function scheduleMatchesCurrentMembers(schedule, dates) {
+  if (!schedule) return false;
+  return dates.every(d => {
+    const person = schedule[formatDate(d)];
+    return person && data.members.includes(person);
+  });
+}
+
+function getMonthSchedule(monthDate, force = false) {
+  const key = getMonthKey(monthDate);
+  const dates = getMonthWeekdays(monthDate);
+
+  if (force || !scheduleMatchesCurrentMembers(data.schedules[key], dates)) {
+    data.schedules[key] = buildMonthSchedule(monthDate);
+    saveData();
+  }
+
+  return data.schedules[key];
+}
+
+function getOriginalAssignment(dateStr) {
+  if (data.members.length === 0) return null;
+  const target = new Date(dateStr + 'T00:00:00');
+  const schedule = getMonthSchedule(target);
+  return schedule[dateStr] || null;
+}
+
+function getMonthWeekdays(monthDate = currentMonthDate) {
+  const dates = [];
+  const y = monthDate.getFullYear();
+  const m = monthDate.getMonth();
+  const d = new Date(y, m, 1);
+
+  while (d.getMonth() === m) {
+    const dow = d.getDay();
+    if (dow >= 1 && dow <= 5) dates.push(new Date(d));
+    d.setDate(d.getDate() + 1);
+  }
+
+  return dates;
+}
+
+function getToday() {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return now;
+}
+
+function setCurrentMonthFromDate(date) {
+  currentMonthDate = new Date(date.getFullYear(), date.getMonth(), 1);
+  currentViewDate = new Date(date);
+  currentViewDate.setHours(0, 0, 0, 0);
+}
+
+function getDaysInMonth(year, monthIndex) {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+function clampViewDate(year, monthIndex, day) {
+  const maxDay = getDaysInMonth(year, monthIndex);
+  const safeDay = Math.min(Math.max(day, 1), maxDay);
+  return new Date(year, monthIndex, safeDay);
+}
+
+function syncDateControls() {
+  const yearSelect = document.getElementById('yearSelect');
+  const monthSelect = document.getElementById('monthSelect');
+  const daySelect = document.getElementById('daySelect');
+  const selectedDateLabel = document.getElementById('selectedDateLabel');
+  const dateToggle = document.getElementById('dateToggle');
+  const datePopover = document.getElementById('datePopover');
+  if (!yearSelect || !monthSelect || !daySelect) return;
+
+  const currentYear = getToday().getFullYear();
+  const selectedYear = currentViewDate.getFullYear();
+  const startYear = Math.min(currentYear - 2, selectedYear - 1);
+  const endYear = Math.max(currentYear + 3, selectedYear + 1);
+
+  yearSelect.innerHTML = '';
+  for (let year = startYear; year <= endYear; year++) {
+    const option = document.createElement('option');
+    option.value = String(year);
+    option.textContent = `${year} 年`;
+    yearSelect.appendChild(option);
+  }
+  yearSelect.value = String(selectedYear);
+
+  monthSelect.innerHTML = '';
+  for (let month = 0; month < 12; month++) {
+    const option = document.createElement('option');
+    option.value = String(month + 1);
+    option.textContent = `${month + 1} 月`;
+    monthSelect.appendChild(option);
+  }
+  monthSelect.value = String(currentViewDate.getMonth() + 1);
+
+  daySelect.innerHTML = '';
+  const maxDay = getDaysInMonth(selectedYear, currentViewDate.getMonth());
+  for (let day = 1; day <= maxDay; day++) {
+    const option = document.createElement('option');
+    option.value = String(day);
+    option.textContent = `${day} 日`;
+    daySelect.appendChild(option);
+  }
+  daySelect.value = String(currentViewDate.getDate());
+
+  if (selectedDateLabel) selectedDateLabel.textContent = formatLongDateWithWeekday(currentViewDate);
+  if (dateToggle) {
+    dateToggle.classList.toggle('active', datePickerOpen);
+    dateToggle.setAttribute('aria-expanded', datePickerOpen ? 'true' : 'false');
+  }
+  if (datePopover) datePopover.classList.toggle('active', datePickerOpen);
+}
+
+function getCurrentWeekdays() {
+  const day = currentViewDate.getDay();
+  const monday = new Date(currentViewDate);
+  monday.setDate(currentViewDate.getDate() - day + (day === 0 ? -6 : 1));
+
+  const dates = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+
+  return dates;
+}
+
+function getPreviewDates() {
+  if (previewMode === 'today') {
+    const dow = currentViewDate.getDay();
+    return dow >= 1 && dow <= 5 ? [new Date(currentViewDate)] : [];
+  }
+
+  if (previewMode === 'week') {
+    return getCurrentWeekdays();
+  }
+
+  return getMonthWeekdays(currentMonthDate);
+}
+
+function renderPreviewSwitch() {
+  document.querySelectorAll('#previewSwitch button').forEach(button => {
+    button.classList.toggle('active', button.dataset.preview === previewMode);
+  });
+}
+
+function getPreviewNote(dates) {
+  if (previewMode === 'today') {
+    return dates.length ? `當日排班：${formatLongDateWithWeekday(dates[0])}` : `${formatLongDateWithWeekday(currentViewDate)} 沒有平日排班`;
+  }
+
+  if (previewMode === 'week') {
+    return `本週排班：${formatLongDate(dates[0])} 到 ${formatLongDate(dates[dates.length - 1])}`;
+  }
+
+  return `${formatMonthLabel(currentMonthDate)} 排班，共 ${dates.length} 個平日`;
+}
+
+function isToday(d) {
+  const now = new Date();
+  return d.toDateString() === now.toDateString();
+}
+
+function getColor(name) {
+  return data.colors[name] || '#7886a3';
+}
+
+function calcStats() {
+  const stats = {};
+  data.members.forEach(m => {
+    stats[m] = { assigned: 0, actual: 0, leave: 0, subbed: 0 };
+  });
+
+  if (data.members.length === 0) return stats;
+
+  const allDates = new Set();
+  const monthEnd = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + 1, 0);
+  const monthEndStr = formatDate(monthEnd);
+
+  Object.keys(data.leaves).forEach(d => {
+    if (d <= monthEndStr) allDates.add(d);
+  });
+  Object.keys(data.subs).forEach(d => {
+    if (d <= monthEndStr) allDates.add(d);
+  });
+  const viewDates = getMonthWeekdays(currentMonthDate);
+  viewDates.forEach(d => allDates.add(formatDate(d)));
+
+  const allSorted = [...allDates].sort();
+  if (allSorted.length === 0) return stats;
+
+  const startDate = new Date(allSorted[0] + 'T00:00:00');
+  const endDate = new Date(allSorted[allSorted.length - 1] + 'T00:00:00');
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dow = d.getDay();
+    if (dow < 1 || dow > 5) continue;
+
+    const ds = formatDate(d);
+    const original = getOriginalAssignment(ds);
+    if (!original || !stats[original]) continue;
+
+    stats[original].assigned++;
+
+    if (data.leaves[ds] === original) {
+      stats[original].leave++;
+      const sub = data.subs[ds];
+      if (sub && stats[sub]) {
+        stats[sub].actual++;
+        stats[sub].subbed++;
+      }
+    } else {
+      stats[original].actual++;
+    }
+  }
+
+  return stats;
+}
+
+// ─── Title ───
+function renderTitle() {
+  const area = document.getElementById('titleArea');
+  area.innerHTML = `<h1 onclick="editTitle()">${escapeHtml(data.title)}</h1>`;
+  document.title = data.title.replace(/[^\w\u4e00-\u9fff]/g, ' ').trim() || '值日生排班表';
+}
+
+function renderSubtitle() {
+  const area = document.getElementById('subtitleArea');
+  area.innerHTML = `<span onclick="editSubtitle()" title="點擊編輯">${escapeHtml(data.subtitle || DEFAULT_DATA.subtitle)}</span>`;
+}
+
+function editTitle() {
+  const area = document.getElementById('titleArea');
+  const input = document.createElement('input');
+  input.value = data.title;
+  input.maxLength = 40;
+  area.innerHTML = '';
+  area.appendChild(input);
+  input.focus();
+  input.select();
+
+  const save = () => {
+    const val = input.value.trim();
+    if (val) data.title = val;
+    saveData();
+    renderTitle();
+  };
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { input.value = data.title; input.blur(); }
+  });
+}
+
+function editSubtitle() {
+  const area = document.getElementById('subtitleArea');
+  const input = document.createElement('input');
+  input.value = data.subtitle || DEFAULT_DATA.subtitle;
+  input.maxLength = 60;
+  area.innerHTML = '';
+  area.appendChild(input);
+  input.focus();
+  input.select();
+
+  const save = () => {
+    const val = input.value.trim();
+    if (val) data.subtitle = val;
+    saveData();
+    renderSubtitle();
+  };
+
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { input.value = data.subtitle || DEFAULT_DATA.subtitle; input.blur(); }
+  });
+}
+
+// ─── Members Bar ───
+function renderMembersBar() {
+  const bar = document.getElementById('membersBar');
+  const toggle = document.getElementById('membersToggle');
+  const countText = document.getElementById('memberCountText');
+  bar.innerHTML = '';
+  bar.classList.toggle('active', membersPanelOpen);
+  if (toggle) {
+    toggle.classList.toggle('active', membersPanelOpen);
+    toggle.setAttribute('aria-expanded', membersPanelOpen ? 'true' : 'false');
+  }
+  if (countText) countText.textContent = `(${data.members.length})`;
+
+  data.members.forEach(m => {
+    const chip = document.createElement('div');
+    chip.className = 'member-chip';
+    chip.innerHTML = `
+      <div class="chip-dot" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
+      ${escapeHtml(m)}
+      <button class="remove-member" onclick="removeMember(decodeURIComponent('${encodeInline(m)}'))" title="移除 ${escapeHtml(m)}">&times;</button>
+    `;
+    bar.appendChild(chip);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-member-btn';
+  addBtn.textContent = '+ 新增成員';
+  addBtn.onclick = openAddMemberModal;
+  bar.appendChild(addBtn);
+}
+
+function toggleMembersPanel() {
+  membersPanelOpen = !membersPanelOpen;
+  renderMembersBar();
+}
+
+function removeMember(name) {
+  if (data.members.length <= 1) {
+    alert('至少要保留一位成員！');
+    return;
+  }
+  if (!confirm(`確定要移除 ${name} 嗎？`)) return;
+  data.members = data.members.filter(m => m !== name);
+  delete data.colors[name];
+  data.schedules = {};
+  Object.keys(data.leaves).forEach(dateStr => {
+    if (data.leaves[dateStr] === name) delete data.leaves[dateStr];
+  });
+  Object.keys(data.subs).forEach(dateStr => {
+    if (data.subs[dateStr] === name) delete data.subs[dateStr];
+  });
+  saveData();
+  renderAll();
+}
+
+function openAddMemberModal() {
+  let selectedColor = PALETTE.find(c => !Object.values(data.colors).includes(c)) || PALETTE[0];
+
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <h3>新增成員</h3>
+    <div class="add-member-form">
+      <input type="text" id="newMemberName" placeholder="輸入名字" maxlength="20" autofocus>
+      <button onclick="confirmAddMember()">加入</button>
+    </div>
+    <label>選擇顏色</label>
+    <div class="color-picks" id="colorPicks"></div>
+    <button class="close-btn" onclick="closeModal()">取消</button>
+  `;
+
+  const picksEl = document.getElementById('colorPicks');
+  PALETTE.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-pick' + (c === selectedColor ? ' selected' : '');
+    dot.style.background = c;
+    dot.onclick = () => {
+      selectedColor = c;
+      picksEl.querySelectorAll('.color-pick').forEach(d => d.classList.remove('selected'));
+      dot.classList.add('selected');
+    };
+    picksEl.appendChild(dot);
+  });
+
+  // Store selected color reference
+  window._addMemberColor = () => selectedColor;
+
+  openModal();
+
+  setTimeout(() => document.getElementById('newMemberName')?.focus(), 100);
+
+  document.getElementById('newMemberName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') confirmAddMember();
+  });
+}
+
+function confirmAddMember() {
+  const input = document.getElementById('newMemberName');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  if (data.members.includes(name)) {
+    alert(`${name} 已經在名單中了！`);
+    input.focus();
+    return;
+  }
+  const color = window._addMemberColor();
+  data.members.push(name);
+  data.colors[name] = color;
+  data.schedules = {};
+  saveData();
+  closeModal();
+  renderAll();
+}
+
+// ─── Schedule ───
+function renderSchedule() {
+  const dates = getPreviewDates();
+  getMonthSchedule(currentMonthDate);
+  syncDateControls();
+  renderPreviewSwitch();
+  document.getElementById('previewNote').textContent = getPreviewNote(dates);
+
+  const scheduleEl = document.getElementById('schedule');
+  scheduleEl.innerHTML = '';
+
+  if (data.members.length === 0) {
+    scheduleEl.innerHTML = '<div class="no-members">請先新增成員</div>';
+    return;
+  }
+
+  if (dates.length === 0) {
+    scheduleEl.innerHTML = '<div class="empty-state">選擇的日期不是週一到週五，沒有值日生排班</div>';
+    return;
+  }
+
+  dates.forEach((d) => {
+    const ds = formatDate(d);
+    const original = getOriginalAssignment(ds);
+    const isOnLeave = data.leaves[ds] === original;
+    const sub = data.subs[ds];
+    const today = isToday(d);
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (today ? ' today' : '');
+
+    const displayPerson = isOnLeave && sub ? sub : original;
+    const initial = displayPerson ? displayPerson[0] : '?';
+
+    const actionsHtml = `<button class="manage-leave" onclick="openDayManage('${ds}', decodeURIComponent('${encodeInline(original)}'))">管理</button>`;
+
+    let bodyHtml = '';
+    if (isOnLeave && sub) {
+      bodyHtml = `
+        <div class="person-name on-leave">${escapeHtml(original)}</div>
+        <div class="sub-info">代班 → ${escapeHtml(sub)}</div>
+      `;
+    } else if (isOnLeave && !sub) {
+      bodyHtml = `
+        <div class="person-name on-leave">${escapeHtml(original)}</div>
+        <div class="sub-info">⚠️ 尚未指定代班</div>
+      `;
+    } else {
+      bodyHtml = `<div class="person-name">${escapeHtml(displayPerson)}</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="day-name">${DAY_NAMES[d.getDay() - 1]}</div>
+      <div class="day-date">${formatShort(d)}</div>
+      <div class="full-date">${formatLongDate(d)}</div>
+      <div class="avatar" style="background:${getColor(displayPerson)}">${escapeHtml(initial)}</div>
+      ${bodyHtml}
+      <div class="actions">${actionsHtml}</div>
+    `;
+
+    scheduleEl.appendChild(card);
+  });
+}
+
+// ─── Stats ───
+function renderStats() {
+  const stats = calcStats();
+  const statsEl = document.getElementById('statsGrid');
+  statsEl.innerHTML = '';
+  document.getElementById('statsNote').textContent = `累計到 ${formatMonthLabel(currentMonthDate)}，請假代班會直接反映補班差額`;
+
+  data.members.forEach(m => {
+    const s = stats[m];
+    if (!s) return;
+    const owe = s.assigned - s.actual;
+    const card = document.createElement('div');
+    card.className = 'stat-card';
+
+    let balanceHtml = '';
+    if (owe > 0) {
+      balanceHtml = `<div class="owe">欠 ${owe} 次值班</div>`;
+    } else if (owe < 0) {
+      balanceHtml = `<div class="surplus">多值 ${Math.abs(owe)} 次</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="stat-avatar" style="background:${getColor(m)}">${escapeHtml(m[0])}</div>
+      <div class="stat-name">${escapeHtml(m)}</div>
+      <div class="stat-row">應值 <span>${s.assigned}</span></div>
+      <div class="stat-row">實值 <span>${s.actual}</span></div>
+      <div class="stat-row">請假 <span>${s.leave}</span></div>
+      <div class="stat-row">代班 <span>${s.subbed}</span></div>
+      ${balanceHtml}
+    `;
+
+    statsEl.appendChild(card);
+  });
+}
+
+// ─── Actions ───
+function changeMonth(dir) {
+  previewMode = 'month';
+  const nextMonth = new Date(currentMonthDate.getFullYear(), currentMonthDate.getMonth() + dir, 1);
+  const nextDate = clampViewDate(nextMonth.getFullYear(), nextMonth.getMonth(), currentViewDate.getDate());
+  setCurrentMonthFromDate(nextDate);
+  renderSchedule();
+  renderStats();
+}
+
+function goCurrentMonth() {
+  previewMode = 'month';
+  datePickerOpen = false;
+  setCurrentMonthFromDate(getToday());
+  renderSchedule();
+  renderStats();
+}
+
+function handleDateSelectChange(closeAfterSelect = false) {
+  const year = Number(document.getElementById('yearSelect').value);
+  const month = Number(document.getElementById('monthSelect').value) - 1;
+  const day = Number(document.getElementById('daySelect').value);
+  const nextDate = clampViewDate(year, month, day);
+  setCurrentMonthFromDate(nextDate);
+  if (closeAfterSelect) datePickerOpen = false;
+  renderSchedule();
+  renderStats();
+}
+
+function toggleDatePicker() {
+  datePickerOpen = !datePickerOpen;
+  syncDateControls();
+}
+
+function closeDatePicker() {
+  if (!datePickerOpen) return;
+  datePickerOpen = false;
+  syncDateControls();
+}
+
+function setPreviewMode(mode) {
+  previewMode = mode;
+  renderSchedule();
+  renderStats();
+}
+
+function rerollCurrentMonth() {
+  if (!confirm('重新隨機排班會清除這個月份已設定的請假 / 代班，確定要重排嗎？')) return;
+
+  const monthKey = getMonthKey(currentMonthDate);
+  delete data.schedules[monthKey];
+
+  getMonthWeekdays(currentMonthDate).forEach(d => {
+    const dateStr = formatDate(d);
+    delete data.leaves[dateStr];
+    delete data.subs[dateStr];
+  });
+
+  getMonthSchedule(currentMonthDate, true);
+  saveData();
+  renderSchedule();
+  renderStats();
+}
+
+function openDayManage(dateStr, person) {
+  const date = parseDateString(dateStr);
+  const isOnLeave = data.leaves[dateStr] === person;
+  const sub = data.subs[dateStr];
+  const modal = document.getElementById('modalContent');
+  const assignmentHint = isOnLeave
+    ? '改派後會清除這天的請假與代班紀錄'
+    : '直接更改這天的值日生';
+  const leaveAction = isOnLeave
+    ? `
+      <button class="manage-option" onclick="openCancelLeaveConfirm('${dateStr}')">
+        <span class="option-icon">↩</span>
+        <span>
+          <span class="option-title">取消請假</span>
+          <span class="option-hint">恢復原排班，移除代班紀錄</span>
+        </span>
+      </button>
+    `
+    : `
+      <button class="manage-option" onclick="openLeaveConfirm('${dateStr}', decodeURIComponent('${encodeInline(person)}'))">
+        <span class="option-icon">休</span>
+        <span>
+          <span class="option-title">請假補位</span>
+          <span class="option-hint">選擇代班人，請假人會欠一次</span>
+        </span>
+      </button>
+    `;
+
+  modal.innerHTML = `
+    <div class="modal-kicker">排班管理</div>
+    <div class="modal-title">${formatLongDateWithWeekday(date)}</div>
+    <div class="modal-summary">
+      <div class="summary-row">
+        <span class="summary-label">${isOnLeave ? '請假人' : '值日生'}</span>
+        <span class="summary-value">${escapeHtml(person)}</span>
+      </div>
+      ${isOnLeave ? `
+        <div class="summary-row">
+          <span class="summary-label">代班人</span>
+          <span class="summary-value">${sub ? escapeHtml(sub) : '尚未指定'}</span>
+        </div>
+      ` : ''}
+    </div>
+    <div class="manage-list">
+      ${leaveAction}
+      <button class="manage-option" onclick="openChangeAssignment('${dateStr}', decodeURIComponent('${encodeInline(person)}'))">
+        <span class="option-icon">換</span>
+        <span>
+          <span class="option-title">更改排班人員</span>
+          <span class="option-hint">${assignmentHint}</span>
+        </span>
+      </button>
+    </div>
+    <button class="close-btn" onclick="closeModal()">關閉</button>
+  `;
+  openModal();
+}
+
+function openLeaveConfirm(dateStr, person) {
+  const date = parseDateString(dateStr);
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <div class="modal-kicker">請假確認</div>
+    <div class="modal-title">要幫 ${escapeHtml(person)} 設定請假嗎？</div>
+    <div class="modal-summary">
+      <div class="summary-row">
+        <span class="summary-label">日期</span>
+        <span class="summary-value">${formatLongDateWithWeekday(date)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">原值日生</span>
+        <span class="summary-value">${escapeHtml(person)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">下一步</span>
+        <span class="summary-value">選擇代班人</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary-btn" onclick="closeModal()">取消</button>
+      <button class="primary-btn" onclick="requestLeave('${dateStr}', decodeURIComponent('${encodeInline(person)}'))">確認請假</button>
+    </div>
+  `;
+  openModal();
+}
+
+function openCancelLeaveConfirm(dateStr) {
+  const person = data.leaves[dateStr];
+  const sub = data.subs[dateStr];
+  const date = parseDateString(dateStr);
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <div class="modal-kicker">取消請假確認</div>
+    <div class="modal-title">確定要取消這筆請假嗎？</div>
+    <div class="modal-summary">
+      <div class="summary-row">
+        <span class="summary-label">日期</span>
+        <span class="summary-value">${formatLongDateWithWeekday(date)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">請假人</span>
+        <span class="summary-value">${escapeHtml(person)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">代班人</span>
+        <span class="summary-value">${sub ? escapeHtml(sub) : '尚未指定'}</span>
+      </div>
+    </div>
+    <div class="modal-help">確認取消後，這一天會回到原本排班，代班紀錄也會一起移除。</div>
+    <div class="modal-actions">
+      <button class="secondary-btn" onclick="closeModal()">保留請假</button>
+      <button class="danger-btn" onclick="cancelLeave('${dateStr}')">確認取消</button>
+    </div>
+  `;
+  openModal();
+}
+
+function openChangeAssignment(dateStr, currentPerson) {
+  const date = parseDateString(dateStr);
+  const candidates = data.members.filter(name => name !== currentPerson);
+  const hasLeaveRecord = !!data.leaves[dateStr] || !!data.subs[dateStr];
+  const modal = document.getElementById('modalContent');
+
+  if (candidates.length === 0) {
+    modal.innerHTML = `
+      <div class="modal-kicker">今日改派</div>
+      <div class="modal-title">目前沒有其他成員可以改派</div>
+      <div class="modal-summary">
+        <div class="summary-row">
+          <span class="summary-label">日期</span>
+          <span class="summary-value">${formatLongDateWithWeekday(date)}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">目前人員</span>
+          <span class="summary-value">${escapeHtml(currentPerson)}</span>
+        </div>
+      </div>
+      <button class="close-btn" onclick="closeModal()">關閉</button>
+    `;
+    openModal();
+    return;
+  }
+
+  modal.innerHTML = `
+    <div class="modal-kicker">今日改派</div>
+    <div class="modal-title">更改今日排班人員</div>
+    <div class="modal-summary">
+      <div class="summary-row">
+        <span class="summary-label">日期</span>
+        <span class="summary-value">${formatLongDateWithWeekday(date)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">目前人員</span>
+        <span class="summary-value">${escapeHtml(currentPerson)}</span>
+      </div>
+    </div>
+    <div class="modal-help">${hasLeaveRecord ? '改派後，今天既有的請假與代班紀錄會一併清除。' : '選擇新的值日生後，今天的排班會立即更新。'}</div>
+    <div class="pick-list" id="changeAssignmentList"></div>
+    <button class="close-btn" onclick="closeModal()">取消</button>
+  `;
+
+  const list = document.getElementById('changeAssignmentList');
+  candidates.forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'pick-item';
+    item.innerHTML = `
+      <div class="mini-avatar" style="background:${getColor(name)}">${escapeHtml(name[0])}</div>
+      <span class="pick-name">${escapeHtml(name)}</span>
+      <span class="pick-hint">改派給此人</span>
+    `;
+    item.onclick = () => confirmChangeAssignment(dateStr, name);
+    list.appendChild(item);
+  });
+
+  openModal();
+}
+
+function confirmChangeAssignment(dateStr, newPerson) {
+  const date = parseDateString(dateStr);
+  const schedule = getMonthSchedule(date);
+  schedule[dateStr] = newPerson;
+  delete data.leaves[dateStr];
+  delete data.subs[dateStr];
+  saveData();
+  closeModal();
+  renderSchedule();
+  renderStats();
+}
+
+function requestLeave(dateStr, person) {
+  const stats = calcStats();
+  const date = parseDateString(dateStr);
+
+  const candidates = data.members
+    .filter(m => m !== person)
+    .map(m => {
+      const s = stats[m] || { assigned: 0, actual: 0 };
+      const owe = s.assigned - s.actual;
+      return { name: m, owe };
+    })
+    .sort((a, b) => b.owe - a.owe);
+
+  const maxOwe = candidates[0]?.owe || 0;
+
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <div class="modal-kicker">選擇代班人</div>
+    <div class="modal-title">${escapeHtml(person)} 請假</div>
+    <div class="modal-summary">
+      <div class="summary-row">
+        <span class="summary-label">日期</span>
+        <span class="summary-value">${formatLongDateWithWeekday(date)}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">原值日生</span>
+        <span class="summary-value">${escapeHtml(person)}</span>
+      </div>
+    </div>
+    <div class="modal-help">優先選擇目前欠班較多的人，讓補班次數比較平均。</div>
+    <div class="pick-list" id="pickList"></div>
+    <button class="close-btn" onclick="closeModal()">取消</button>
+  `;
+
+  const list = document.getElementById('pickList');
+  candidates.forEach(c => {
+    const isRec = c.owe === maxOwe && maxOwe > 0;
+    const item = document.createElement('div');
+    item.className = 'pick-item' + (isRec ? ' recommended' : '');
+    item.innerHTML = `
+      <div class="mini-avatar" style="background:${getColor(c.name)}">${escapeHtml(c.name[0])}</div>
+      <span class="pick-name">${escapeHtml(c.name)}</span>
+      <span class="pick-hint">${c.owe > 0 ? `欠 ${c.owe} 次` : c.owe < 0 ? `多值 ${Math.abs(c.owe)} 次` : '持平'}${isRec ? ' ⭐ 推薦' : ''}</span>
+    `;
+    item.onclick = () => {
+      data.leaves[dateStr] = person;
+      data.subs[dateStr] = c.name;
+      saveData();
+      closeModal();
+      renderSchedule();
+      renderStats();
+    };
+    list.appendChild(item);
+  });
+
+  openModal();
+}
+
+function cancelLeave(dateStr) {
+  delete data.leaves[dateStr];
+  delete data.subs[dateStr];
+  saveData();
+  closeModal();
+  renderSchedule();
+  renderStats();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+}
+
+function openModal() {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('active');
+  setTimeout(() => {
+    const safeButton = overlay.querySelector('.secondary-btn, .close-btn');
+    if (safeButton) safeButton.focus();
+  }, 0);
+}
+
+function resetAll() {
+  if (confirm('確定要重置所有資料（包含成員、請假紀錄）嗎？')) {
+    localStorage.removeItem(STORAGE_KEY);
+    data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    data.updatedAt = Date.now();
+    goCurrentMonth();
+    renderAll();
+  }
+}
+
+function renderAll() {
+  renderTitle();
+  renderSubtitle();
+  renderMembersBar();
+  renderSchedule();
+  renderStats();
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeDatePicker();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!datePickerOpen) return;
+  if (e.target.closest('.date-picker')) return;
+  closeDatePicker();
+});
+
+// Init
+async function initApp() {
+  await pullRemoteData();
+  renderAll();
+  if (SYNC_ENABLED && syncReady && remoteDataWasEmpty) {
+    queueRemoteSave();
+  }
+  if (SYNC_ENABLED) {
+    setInterval(refreshRemoteData, 5000);
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
