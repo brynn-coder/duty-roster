@@ -2192,6 +2192,30 @@ function parseDateString(dateStr) {
   return new Date(dateStr + 'T00:00:00');
 }
 
+function getTodayStart() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today;
+}
+
+function isPastDate(date) {
+  return date < getTodayStart();
+}
+
+function isPastDateString(dateStr) {
+  return isPastDate(parseDateString(dateStr));
+}
+
+function isPastMonthKey(monthKey) {
+  const [year, month] = monthKey.split('-').map(Number);
+  if (!year || !month) return false;
+  const monthStart = new Date(year, month - 1, 1);
+  const currentMonthStart = new Date();
+  currentMonthStart.setDate(1);
+  currentMonthStart.setHours(0, 0, 0, 0);
+  return monthStart < currentMonthStart;
+}
+
 function formatMonthInput(d) {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -2215,12 +2239,24 @@ function shuffleList(list) {
   return arr;
 }
 
-function buildMonthSchedule(monthDate) {
+function buildMonthSchedule(monthDate, existingSchedule = {}) {
   const dates = getMonthWeekdays(monthDate);
   const schedule = {};
+  const targetDates = [];
+  dates.forEach(d => {
+    const dateStr = formatDate(d);
+    if (existingSchedule[dateStr] && isPastDate(d)) {
+      schedule[dateStr] = existingSchedule[dateStr];
+    } else {
+      targetDates.push(d);
+    }
+  });
+
+  if (targetDates.length === 0) return schedule;
+
   const shuffledMembers = shuffleList(data.members);
-  const baseCount = Math.floor(dates.length / data.members.length);
-  const extraCount = dates.length % data.members.length;
+  const baseCount = Math.floor(targetDates.length / data.members.length);
+  const extraCount = targetDates.length % data.members.length;
   const remaining = {};
   const lastByWeekday = {};
   let previousPerson = null;
@@ -2229,7 +2265,7 @@ function buildMonthSchedule(monthDate) {
     remaining[name] = baseCount + (index < extraCount ? 1 : 0);
   });
 
-  dates.forEach((d) => {
+  targetDates.forEach((d) => {
     const weekday = d.getDay();
     let candidates = data.members.filter(name => remaining[name] > 0);
 
@@ -2277,10 +2313,15 @@ function buildMonthlyTaskAssignees() {
 function getMonthlyTaskAssignees(monthDate = currentMonthDate, force = false) {
   const key = getMonthKey(monthDate);
   const saved = data.monthlyTaskSchedules?.[key];
-  const valid = Array.isArray(saved)
-    && saved.length === Math.min(2, data.members.length)
-    && saved.every(name => data.members.includes(name))
-    && new Set(saved).size === saved.length;
+  const isHistoricalMonth = isPastMonthKey(key);
+  const valid = isHistoricalMonth
+    ? Array.isArray(saved) && saved.length > 0
+    : (
+      Array.isArray(saved)
+      && saved.length === Math.min(2, data.members.length)
+      && saved.every(name => data.members.includes(name))
+      && new Set(saved).size === saved.length
+    );
 
   if (force || !valid) {
     data.monthlyTaskSchedules = data.monthlyTaskSchedules || {};
@@ -2294,8 +2335,10 @@ function getMonthlyTaskAssignees(monthDate = currentMonthDate, force = false) {
 function scheduleMatchesCurrentMembers(schedule, dates) {
   if (!schedule) return false;
   return dates.every(d => {
-    const person = schedule[formatDate(d)];
-    return person && data.members.includes(person);
+    const dateStr = formatDate(d);
+    const person = schedule[dateStr];
+    if (!person) return false;
+    return isPastDate(d) || data.members.includes(person);
   });
 }
 
@@ -2303,8 +2346,9 @@ function getMonthSchedule(monthDate, force = false) {
   const key = getMonthKey(monthDate);
   const dates = getMonthWeekdays(monthDate);
 
+  data.schedules = data.schedules || {};
   if (force || !scheduleMatchesCurrentMembers(data.schedules[key], dates)) {
-    data.schedules[key] = buildMonthSchedule(monthDate);
+    data.schedules[key] = buildMonthSchedule(monthDate, force ? {} : (data.schedules[key] || {}));
     saveData();
   }
 
@@ -2316,6 +2360,29 @@ function getOriginalAssignment(dateStr) {
   const target = new Date(dateStr + 'T00:00:00');
   const schedule = getMonthSchedule(target);
   return schedule[dateStr] || null;
+}
+
+function clearFutureScheduleData() {
+  const today = getTodayStart();
+
+  Object.keys(data.schedules || {}).forEach(monthKey => {
+    Object.keys(data.schedules[monthKey] || {}).forEach(dateStr => {
+      if (parseDateString(dateStr) >= today) delete data.schedules[monthKey][dateStr];
+    });
+    if (Object.keys(data.schedules[monthKey] || {}).length === 0) delete data.schedules[monthKey];
+  });
+
+  Object.keys(data.leaves || {}).forEach(dateStr => {
+    if (parseDateString(dateStr) >= today) delete data.leaves[dateStr];
+  });
+
+  Object.keys(data.subs || {}).forEach(dateStr => {
+    if (parseDateString(dateStr) >= today) delete data.subs[dateStr];
+  });
+
+  Object.keys(data.monthlyTaskSchedules || {}).forEach(monthKey => {
+    if (!isPastMonthKey(monthKey)) delete data.monthlyTaskSchedules[monthKey];
+  });
 }
 
 function getMonthWeekdays(monthDate = currentMonthDate) {
@@ -2620,18 +2687,7 @@ function removeMember(name) {
   if (!confirm(`確定要移除 ${name} 嗎？`)) return;
   data.members = data.members.filter(m => m !== name);
   delete data.colors[name];
-  data.schedules = {};
-  Object.keys(data.leaves).forEach(dateStr => {
-    if (data.leaves[dateStr] === name) delete data.leaves[dateStr];
-  });
-  Object.keys(data.subs).forEach(dateStr => {
-    if (data.subs[dateStr] === name) delete data.subs[dateStr];
-  });
-  Object.keys(data.monthlyTaskSchedules || {}).forEach(monthKey => {
-    const next = data.monthlyTaskSchedules[monthKey].filter(member => member !== name);
-    if (next.length === data.monthlyTaskSchedules[monthKey].length) return;
-    delete data.monthlyTaskSchedules[monthKey];
-  });
+  clearFutureScheduleData();
   saveData();
   renderAll();
 }
@@ -2832,8 +2888,7 @@ function confirmAddMember() {
   data.members.push(name);
   rememberCustomColor(color);
   data.colors[name] = color;
-  data.schedules = {};
-  data.monthlyTaskSchedules = {};
+  clearFutureScheduleData();
   saveData();
   closeModal();
   renderAll();
