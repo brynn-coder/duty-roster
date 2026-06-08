@@ -1108,6 +1108,56 @@
     margin: -4px 0 16px;
   }
 
+  .modal .recommend-card {
+    align-items: center;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #d6dbe4;
+    border-radius: 16px;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: auto 1fr;
+    margin: 14px 0;
+    padding: 14px;
+  }
+
+  .modal .recommend-avatar {
+    align-items: center;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: flex;
+    font-size: 1.1rem;
+    font-weight: 800;
+    height: 44px;
+    justify-content: center;
+    line-height: 1;
+    text-align: center;
+    width: 44px;
+  }
+
+  .modal .recommend-eyebrow {
+    color: #7886a3;
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .modal .recommend-name {
+    color: #4a5469;
+    display: block;
+    font-size: 1.08rem;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .modal .recommend-reason {
+    color: #5e687f;
+    font-size: 0.82rem;
+    grid-column: 1 / -1;
+    line-height: 1.5;
+    margin: 0;
+  }
+
   .modal .pick-list {
     display: flex;
     flex-direction: column;
@@ -2548,6 +2598,10 @@ function getMemberColorStyle(name) {
 }
 
 function calcStats() {
+  return calcStatsForMonth(currentMonthDate);
+}
+
+function calcStatsForMonth(monthDate) {
   const stats = {};
   data.members.forEach(m => {
     stats[m] = { assigned: 0, actual: 0, leave: 0, subbed: 0 };
@@ -2555,7 +2609,7 @@ function calcStats() {
 
   if (data.members.length === 0) return stats;
 
-  getMonthWeekdays(currentMonthDate).forEach(d => {
+  getMonthWeekdays(monthDate).forEach(d => {
     const ds = formatDate(d);
     const original = getOriginalAssignment(ds);
     if (!original || !stats[original]) return;
@@ -2575,6 +2629,45 @@ function calcStats() {
   });
 
   return stats;
+}
+
+function getNeighborAssignments(date, schedule) {
+  const neighbors = [];
+  [-1, 1].forEach(offset => {
+    const d = new Date(date);
+    d.setDate(date.getDate() + offset);
+    const day = d.getDay();
+    if (day >= 1 && day <= 5) {
+      const person = schedule[formatDate(d)];
+      if (person) neighbors.push(person);
+    }
+  });
+  return neighbors;
+}
+
+function getChangeAssignmentRecommendations(dateStr, currentPerson) {
+  const date = parseDateString(dateStr);
+  const monthDate = new Date(date.getFullYear(), date.getMonth(), 1);
+  const schedule = getMonthSchedule(monthDate);
+  const stats = calcStatsForMonth(monthDate);
+  const neighbors = getNeighborAssignments(date, schedule);
+
+  return data.members
+    .filter(name => name !== currentPerson)
+    .map(name => {
+      const stat = stats[name] || { assigned: 0, actual: 0, leave: 0, subbed: 0 };
+      const owe = stat.assigned - stat.actual;
+      const isNeighbor = neighbors.includes(name);
+      const score = (owe * 100) - (stat.assigned * 10) - (stat.actual * 4) - (isNeighbor ? 35 : 0);
+      const reasons = [];
+      if (owe > 0) reasons.push(`目前欠 ${owe} 次值日`);
+      if (owe < 0) reasons.push(`目前多值 ${Math.abs(owe)} 次，但本月分配仍較合適`);
+      if (owe === 0) reasons.push('目前值日差額持平');
+      reasons.push(`本月已排 ${stat.assigned} 次、實值 ${stat.actual} 次`);
+      reasons.push(isNeighbor ? '鄰近日期已有排班，作為備選' : '鄰近日期沒有連續值日');
+      return { name, score, reasons };
+    })
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
 }
 
 // ─── Title ───
@@ -3460,13 +3553,13 @@ function openCancelLeaveConfirm(dateStr) {
   openModal();
 }
 
-function openChangeAssignment(dateStr, currentPerson) {
+function openChangeAssignment(dateStr, currentPerson, recommendationIndex = 0) {
   const date = parseDateString(dateStr);
-  const candidates = data.members.filter(name => name !== currentPerson);
+  const recommendations = getChangeAssignmentRecommendations(dateStr, currentPerson);
   const hasLeaveRecord = !!data.leaves[dateStr] || !!data.subs[dateStr];
   const modal = document.getElementById('modalContent');
 
-  if (candidates.length === 0) {
+  if (recommendations.length === 0) {
     modal.innerHTML = `
       <div class="modal-kicker">今日改派</div>
       <div class="modal-title">目前沒有其他成員可以改派</div>
@@ -3486,9 +3579,16 @@ function openChangeAssignment(dateStr, currentPerson) {
     return;
   }
 
+  const safeIndex = ((Number(recommendationIndex) || 0) % recommendations.length + recommendations.length) % recommendations.length;
+  const recommended = recommendations[safeIndex];
+  const nextIndex = (safeIndex + 1) % recommendations.length;
+  const switchButton = recommendations.length > 1
+    ? `<button class="secondary-btn" onclick="openChangeAssignment('${dateStr}', decodeURIComponent('${encodeInline(currentPerson)}'), ${nextIndex})">換一位</button>`
+    : '';
+
   modal.innerHTML = `
     <div class="modal-kicker">今日改派</div>
-    <div class="modal-title">更改今日排班人員</div>
+    <div class="modal-title">建議改派給 ${escapeHtml(recommended.name)}</div>
     <div class="modal-summary">
       <div class="summary-row">
         <span class="summary-label">日期</span>
@@ -3499,23 +3599,21 @@ function openChangeAssignment(dateStr, currentPerson) {
         <span class="summary-value">${escapeHtml(currentPerson)}</span>
       </div>
     </div>
-    <div class="modal-help">${hasLeaveRecord ? '改派後，今天既有的請假與代班紀錄會一併清除。' : '選擇新的值日生後，今天的排班會立即更新。'}</div>
-    <div class="pick-list" id="changeAssignmentList"></div>
-    <button class="close-btn" onclick="closeModal()">取消</button>
+    <div class="recommend-card">
+      <div class="recommend-avatar" style="${getMemberColorStyle(recommended.name)}">${escapeHtml(recommended.name[0])}</div>
+      <div>
+        <span class="recommend-eyebrow">系統推薦</span>
+        <span class="recommend-name">${escapeHtml(recommended.name)}</span>
+      </div>
+      <p class="recommend-reason">${recommended.reasons.map(escapeHtml).join(' · ')}</p>
+    </div>
+    <div class="modal-help">${hasLeaveRecord ? '確認改派後，這一天既有的請假與代班紀錄會一併清除。' : '確認後，這一天的排班會立即改為推薦人員。'}</div>
+    <div class="modal-actions">
+      <button class="secondary-btn" onclick="closeModal()">取消</button>
+      ${switchButton}
+      <button class="primary-btn" onclick="confirmChangeAssignment('${dateStr}', decodeURIComponent('${encodeInline(recommended.name)}'))">確認改派</button>
+    </div>
   `;
-
-  const list = document.getElementById('changeAssignmentList');
-  candidates.forEach(name => {
-    const item = document.createElement('div');
-    item.className = 'pick-item';
-    item.innerHTML = `
-      <div class="mini-avatar" style="${getMemberColorStyle(name)}">${escapeHtml(name[0])}</div>
-      <span class="pick-name">${escapeHtml(name)}</span>
-      <span class="pick-hint">改派給此人</span>
-    `;
-    item.onclick = () => confirmChangeAssignment(dateStr, name);
-    list.appendChild(item);
-  });
 
   openModal();
 }
