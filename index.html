@@ -36,12 +36,14 @@
     border-radius: 16px;
     box-shadow: var(--shadow);
     padding: 24px;
+    position: relative;
   }
 
   /* Editable Title */
   .title-area {
     text-align: center;
     margin-bottom: 6px;
+    padding: 0 52px;
   }
 
   .title-area h1 {
@@ -273,10 +275,6 @@
     border-radius: 14px;
     box-shadow: none;
     padding: 16px;
-  }
-
-  .current-panel {
-    background: linear-gradient(180deg, #fff 0%, #f7f8fb 100%);
   }
 
   .duty-panel h2 {
@@ -574,6 +572,387 @@
   .secondary-actions {
     display: flex;
     gap: 8px;
+    position: relative;
+    z-index: 95;
+  }
+
+  .manage-drawer-btn {
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: #4a5469;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.82rem;
+    font-weight: 800;
+    gap: 7px;
+    min-height: 42px;
+    padding: 10px 13px;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    white-space: nowrap;
+  }
+
+  .corner-manage-btn {
+    border-radius: 50%;
+    box-shadow: 0 8px 18px rgba(74,84,105,0.08);
+    gap: 0;
+    height: 42px;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0;
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    width: 42px;
+    z-index: 95;
+  }
+
+  .corner-manage-btn span {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  .manage-drawer-btn:hover,
+  .manage-drawer-btn.active {
+    background: #eef1f6;
+    border-color: #afb7ca;
+    box-shadow: 0 7px 16px rgba(74,84,105,0.1);
+    transform: translateY(-1px);
+  }
+
+  .manage-drawer-btn.active {
+    z-index: 95;
+  }
+
+  .drawer-overlay {
+    background: rgba(22, 28, 38, 0.28);
+    display: none;
+    inset: 0;
+    position: fixed;
+    z-index: 90;
+  }
+
+  .drawer-overlay.active {
+    display: block;
+  }
+
+  .side-drawer {
+    background: #fff;
+    border-left: 1px solid #d6dbe4;
+    box-shadow: -18px 0 42px rgba(74,84,105,0.18);
+    color: #4a5469;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: 100vh;
+    max-width: 380px;
+    overflow-y: auto;
+    padding: 18px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    transform: translateX(105%);
+    transition: transform 0.24s ease;
+    width: min(88vw, 380px);
+    z-index: 100;
+  }
+
+  .side-drawer.active {
+    transform: translateX(0);
+  }
+
+  .drawer-head {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .drawer-kicker {
+    color: #7886a3;
+    font-size: 0.72rem;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  .drawer-title {
+    color: #4a5469;
+    font-size: 1.15rem;
+    font-weight: 900;
+  }
+
+  .drawer-close {
+    align-items: center;
+    background: #f4f6fa;
+    border: 1px solid #d6dbe4;
+    border-radius: 12px;
+    color: #4a5469;
+    cursor: pointer;
+    display: inline-flex;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+  }
+
+  .drawer-section {
+    border: 1px solid #e7eaf0;
+    border-radius: 14px;
+    padding: 12px;
+  }
+
+  .side-drawer .members-bar {
+    border: 0;
+    margin: 0;
+    max-width: none;
+    padding: 0;
+  }
+
+  .drawer-section-title {
+    align-items: center;
+    color: #4a5469;
+    display: flex;
+    font-size: 0.9rem;
+    font-weight: 900;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .drawer-actions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .drawer-action {
+    align-items: center;
+    background: #f7f8fb;
+    border: 1px solid #e7eaf0;
+    border-radius: 12px;
+    color: #4a5469;
+    cursor: pointer;
+    display: flex;
+    font-size: 0.84rem;
+    font-weight: 850;
+    gap: 9px;
+    justify-content: flex-start;
+    padding: 11px 12px;
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    width: 100%;
+  }
+
+  .drawer-action:hover {
+    background: #eef1f6;
+    border-color: #afb7ca;
+    transform: translateY(-1px);
+  }
+
+  .drawer-action.danger {
+    background: #fff8f7;
+    border-color: #f0d2ce;
+    color: #a94f45;
+  }
+
+  .drawer-action.danger:hover {
+    background: #fff1ee;
+    border-color: #dea8a1;
+    color: #8f3f37;
+  }
+
+  .fortune-card {
+    align-items: center;
+    background:
+      radial-gradient(circle at 16% 24%, rgba(255,255,255,0.9) 0 1px, transparent 2px),
+      radial-gradient(circle at 78% 18%, rgba(255,255,255,0.85) 0 1px, transparent 2px),
+      radial-gradient(circle at 64% 82%, rgba(255,255,255,0.7) 0 1px, transparent 2px),
+      linear-gradient(135deg, #4a5469 0%, #7886a3 54%, #d6dbe4 100%);
+    border: 1px solid rgba(255,255,255,0.64);
+    border-radius: 18px;
+    box-shadow: 0 18px 36px rgba(74,84,105,0.18);
+    color: #4a5469;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 116px minmax(0, 1fr);
+    margin: -2px auto 18px;
+    max-width: 920px;
+    overflow: hidden;
+    padding: 16px;
+    position: relative;
+  }
+
+  .fortune-card::before {
+    background:
+      linear-gradient(90deg, transparent 0 12px, rgba(255,255,255,0.16) 12px 13px, transparent 13px 100%),
+      linear-gradient(0deg, transparent 0 12px, rgba(255,255,255,0.11) 12px 13px, transparent 13px 100%);
+    background-size: 34px 34px;
+    content: "";
+    inset: 0;
+    opacity: 0.28;
+    pointer-events: none;
+    position: absolute;
+  }
+
+  .fortune-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .fortune-orbit {
+    align-items: center;
+    align-self: stretch;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.36);
+    border-radius: 16px;
+    color: #5e687f;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+    min-height: 108px;
+    padding: 12px;
+  }
+
+  .fortune-icon {
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.95);
+    border-radius: 50%;
+    box-shadow: 0 12px 24px rgba(36,45,60,0.18);
+    color: #4a5469;
+    display: flex;
+    font-size: 2.2rem;
+    height: 72px;
+    justify-content: center;
+    line-height: 1;
+    width: 72px;
+  }
+
+  .fortune-mini-label {
+    color: rgba(255,255,255,0.86);
+    font-size: 0.72rem;
+    font-weight: 900;
+  }
+
+  .fortune-copy {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.78);
+    border-radius: 16px;
+    min-width: 0;
+    padding: 14px;
+  }
+
+  .fortune-topline {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .fortune-kicker {
+    background: #edf0f5;
+    border: 1px solid #d6dbe4;
+    border-radius: 999px;
+    color: #5e687f;
+    display: inline-flex;
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 4px 9px;
+  }
+
+  .fortune-date {
+    color: #7886a3;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .fortune-sign {
+    color: #4a5469;
+    display: block;
+    font-size: 1.22rem;
+    font-weight: 900;
+    margin-bottom: 5px;
+  }
+
+  .fortune-text {
+    color: #4a5469;
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.55;
+  }
+
+  .fortune-meta {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .fortune-source {
+    color: #7886a3;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .fortune-source:hover {
+    color: #4a5469;
+  }
+
+  .fortune-source.muted {
+    color: #afb7ca;
+  }
+
+  .fortune-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .fortune-controls {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+  }
+
+  .fortune-step {
+    align-items: center;
+    background: #f4f6fa;
+    border: 1px solid #d6dbe4;
+    border-radius: 999px;
+    color: #4a5469;
+    cursor: pointer;
+    display: inline-flex;
+    height: 28px;
+    justify-content: center;
+    padding: 0;
+    width: 28px;
+  }
+
+  .fortune-step:hover {
+    background: #e9edf4;
+  }
+
+  .fortune-dot {
+    background: #d6dbe4;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    height: 7px;
+    padding: 0;
+    transition: background 0.2s, transform 0.2s, width 0.2s;
+    width: 7px;
+  }
+
+  .fortune-dot.active {
+    background: #4a5469;
+    width: 18px;
   }
 
   .month-nav button {
@@ -937,6 +1316,11 @@
   }
 
   /* Stats */
+  .stats-section {
+    margin: 0 auto;
+    max-width: 920px;
+  }
+
   .stats-section h2 {
     font-size: 1.1rem;
     color: #4a5469;
@@ -1580,23 +1964,6 @@
     margin-bottom: 6px;
   }
 
-  /* Reset */
-  .reset-section {
-    text-align: center;
-    margin-top: 8px;
-  }
-
-  .reset-btn {
-    font-size: 0.8rem;
-    color: #afb7ca;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-
-  .reset-btn:hover { color: #e74c3c; }
-
   /* No member warning */
   .no-members {
     text-align: center;
@@ -1732,6 +2099,7 @@
   @media (max-width: 720px) {
     body { padding: 10px; }
     .app-shell { padding: 18px 12px; border-radius: 14px; }
+    .title-area { padding: 0 44px; }
     .title-area h1 { font-size: 1.35rem; }
     .subtitle { font-size: 0.82rem; line-height: 1.45; }
     .month-nav { flex-wrap: wrap; gap: 8px; padding: 8px; }
@@ -1758,14 +2126,66 @@
     }
     .date-popover { left: 0; min-width: 100%; right: 0; transform: none; }
     .date-select { flex: 1; min-width: 0; }
-    .sub-toolbar { align-items: stretch; flex-direction: column; }
-    .secondary-actions { display: flex; }
-    .secondary-actions .members-toggle { flex: 1; width: auto; }
-    .secondary-actions .reroll-btn { flex: 0 0 82px; }
+    .sub-toolbar { align-items: center; flex-direction: column; }
+    .corner-manage-btn {
+      height: 40px;
+      min-height: 40px;
+      right: 12px;
+      top: 12px;
+      width: 40px;
+    }
+    .side-drawer {
+      max-width: none;
+      width: min(92vw, 380px);
+    }
+    .fortune-card {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      text-align: center;
+    }
+    .fortune-orbit {
+      flex-direction: column;
+      min-height: 78px;
+      padding: 8px;
+    }
+    .fortune-icon {
+      margin: 0 auto;
+      font-size: 1.85rem;
+      height: 48px;
+      width: 48px;
+    }
+    .fortune-mini-label {
+      font-size: 0.68rem;
+    }
+    .fortune-copy {
+      padding: 10px;
+    }
+    .fortune-kicker,
+    .fortune-date,
+    .fortune-source { font-size: 0.7rem; }
+    .fortune-sign { font-size: 1.08rem; }
+    .fortune-text { font-size: 0.86rem; }
+    .fortune-meta {
+      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fortune-topline {
+      flex-direction: row;
+      justify-content: center;
+    }
+    .fortune-controls {
+      flex-direction: row;
+    }
+    .fortune-dots {
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 180px;
+    }
     .preview-switch { width: 100%; }
     .preview-switch button { flex: 1; min-width: 0; }
-    .members-toggle { justify-content: center; width: 100%; }
-    .members-bar { margin-top: -4px; }
     .month-nav button { padding: 10px 10px; }
     .month-nav .month-arrow { min-width: 0; }
     .duty-overview { grid-template-columns: 1fr; }
@@ -1792,12 +2212,25 @@
 
 <div class="container">
   <div class="app-shell">
+    <button class="manage-drawer-btn corner-manage-btn" id="manageDrawerToggle" type="button" onclick="toggleManageDrawer()" aria-expanded="false" aria-controls="manageDrawer" title="管理設定" aria-label="管理設定">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 7h8"></path>
+        <path d="M16 7h4"></path>
+        <circle cx="14" cy="7" r="2"></circle>
+        <path d="M4 17h4"></path>
+        <path d="M12 17h8"></path>
+        <circle cx="10" cy="17" r="2"></circle>
+      </svg>
+      <span>管理</span>
+    </button>
     <div class="title-area" id="titleArea"></div>
     <p class="subtitle" id="subtitleArea"></p>
     <div class="sync-status offline" id="syncStatus">
       <span class="sync-dot"></span>
       <span id="syncText">單機模式</span>
     </div>
+
+    <div class="fortune-card" id="fortuneCard"></div>
 
     <div class="month-nav">
       <button class="month-arrow" onclick="changeMonth(-1)" aria-label="上個月">
@@ -1837,31 +2270,13 @@
         <button type="button" data-preview="week" onclick="setPreviewMode('week')">本週</button>
         <button type="button" data-preview="month" onclick="setPreviewMode('month')">本月</button>
       </div>
-      <div class="secondary-actions">
-        <button class="members-toggle" id="membersToggle" type="button" onclick="toggleMembersPanel()" aria-expanded="false" aria-controls="membersBar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
-          <span>成員 <span id="memberCountText"></span></span>
-        </button>
-        <button class="reroll-btn" onclick="rerollCurrentMonth()" title="重新隨機排班">
-          <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 12a9 9 0 1 1-3-6.7"></path>
-            <path d="M21 3v6h-6"></path>
-          </svg>
-          <span>重排</span>
-        </button>
-      </div>
     </div>
 
-    <div class="members-bar" id="membersBar"></div>
-    <div class="duty-overview" id="dutyOverview"></div>
     <div class="preview-note" id="previewNote"></div>
 
     <div class="schedule" id="schedule"></div>
+
+    <div class="duty-overview" id="dutyOverview"></div>
 
     <div class="stats-section">
       <div class="section-head">
@@ -1871,11 +2286,84 @@
       <div class="stats-grid" id="statsGrid"></div>
     </div>
 
-    <div class="reset-section">
-      <button class="reset-btn" onclick="resetAll()">重置所有資料</button>
-    </div>
   </div>
 </div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeManageDrawer()"></div>
+<aside class="side-drawer" id="manageDrawer" aria-hidden="true">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-kicker">管理工具</div>
+      <div class="drawer-title">排班設定</div>
+    </div>
+    <button class="drawer-close" type="button" onclick="closeManageDrawer()" aria-label="關閉管理側邊欄">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <section class="drawer-section">
+    <div class="drawer-section-title">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+      <span>成員 <span id="memberCountText"></span></span>
+    </div>
+    <div class="members-bar active" id="membersBar"></div>
+  </section>
+
+  <section class="drawer-section">
+    <div class="drawer-section-title">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      <span>快速操作</span>
+    </div>
+    <div class="drawer-actions">
+      <button class="drawer-action" type="button" onclick="openEditWorkTasks()">
+        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        <span>編輯工作內容</span>
+      </button>
+      <button class="drawer-action" type="button" onclick="rerollCurrentMonth()">
+        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-3-6.7"></path>
+          <path d="M21 3v6h-6"></path>
+        </svg>
+        <span>重新隨機排班</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="drawer-section">
+    <div class="drawer-section-title">
+      <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10.3 3.3 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.3a2 2 0 0 0-3.4 0Z"></path>
+        <path d="M12 9v4"></path>
+        <path d="M12 17h.01"></path>
+      </svg>
+      <span>危險操作</span>
+    </div>
+    <div class="drawer-actions">
+      <button class="drawer-action danger" type="button" onclick="resetAll()">
+        <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M19 6 18 20H6L5 6"></path>
+          <path d="M10 11v5"></path>
+          <path d="M14 11v5"></path>
+        </svg>
+        <span>重置所有資料</span>
+      </button>
+    </div>
+  </section>
+</aside>
 
 <!-- Modal (shared for substitute picker & add member) -->
 <div class="modal-overlay" id="modalOverlay">
@@ -1891,6 +2379,7 @@ const SYNC_ENABLED = location.protocol === 'http:' || location.protocol === 'htt
 const SYNC_CONFIG = window.DUTY_ROSTER_CONFIG || {};
 const SUPABASE_TABLE = SYNC_CONFIG.tableName || 'duty_roster_state';
 const SUPABASE_RECORD_ID = SYNC_CONFIG.recordId || 'main';
+const HOROSCOPE_TABLE = SYNC_CONFIG.horoscopeTable || 'daily_horoscopes';
 const PALETTE = [
   '#e74c3c', '#e67e22', '#f1c40f', '#27ae60',
   '#1abc9c', '#3498db', '#4a5469', '#8e44ad', '#e84393',
@@ -1920,6 +2409,36 @@ const DEFAULT_WORK_TASKS = {
   adhoc: ['寄掛號信 / 包裹', '幫忙送東西至宋鈴家等']
 };
 
+const ZODIAC_SIGNS = [
+  { key: 'aries', name: '牡羊座', english: 'Aries', icon: '♈' },
+  { key: 'taurus', name: '金牛座', english: 'Taurus', icon: '♉' },
+  { key: 'gemini', name: '雙子座', english: 'Gemini', icon: '♊' },
+  { key: 'cancer', name: '巨蟹座', english: 'Cancer', icon: '♋' },
+  { key: 'leo', name: '獅子座', english: 'Leo', icon: '♌' },
+  { key: 'virgo', name: '處女座', english: 'Virgo', icon: '♍' },
+  { key: 'libra', name: '天秤座', english: 'Libra', icon: '♎' },
+  { key: 'scorpio', name: '天蠍座', english: 'Scorpio', icon: '♏' },
+  { key: 'sagittarius', name: '射手座', english: 'Sagittarius', icon: '♐' },
+  { key: 'capricorn', name: '摩羯座', english: 'Capricorn', icon: '♑' },
+  { key: 'aquarius', name: '水瓶座', english: 'Aquarius', icon: '♒' },
+  { key: 'pisces', name: '雙魚座', english: 'Pisces', icon: '♓' }
+];
+
+const FALLBACK_HOROSCOPES = [
+  '今天適合把小事一次收尾，整理環境會讓心情更清爽。',
+  '今天的幸運關鍵是分工明確，先確認順序再開始行動。',
+  '今天適合溫柔但有效率地處理待辦，別讓垃圾桶等太久。',
+  '今天容易注意到平常忽略的細節，清潔公共區域會很有成就感。',
+  '今天適合補水、補紙、補庫存，小地方顧好就很順。',
+  '今天的好運來自俐落收尾，完成一項就劃掉一項。',
+  '今天適合主動確認信件與包裹，會省下後面很多溝通。',
+  '今天保持桌面清爽，腦袋也會跟著變清楚。',
+  '今天適合用輕鬆節奏完成值日，越早處理越不佔心。',
+  '今天的幸運動作是順手整理，看到就做會比累積更輕鬆。',
+  '今天適合把公共區域恢復到舒服狀態，大家都會默默受惠。',
+  '今天不必追求完美，但適合把該補的、該倒的、該擦的補齊。'
+];
+
 const DEFAULT_DATA = {
   title: '📋 值日生排班表',
   subtitle: '週一到週五 · 每日一人 · 隨機平均排班 · 請假補位',
@@ -1947,6 +2466,7 @@ let currentViewDate = new Date();
 currentViewDate.setHours(0, 0, 0, 0);
 let previewMode = 'month';
 let membersPanelOpen = false;
+let manageDrawerOpen = false;
 let datePickerOpen = false;
 let workContentOpen = false;
 let data = loadData();
@@ -1955,6 +2475,9 @@ let syncTimer = null;
 let isApplyingRemoteData = false;
 let remoteDataWasEmpty = false;
 let supabaseClient = null;
+let horoscopeEntries = buildFallbackHoroscopeEntries();
+let activeHoroscopeIndex = 0;
+let horoscopeTimer = null;
 
 function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -2568,6 +3091,125 @@ function getPreviewNote(dates) {
   return `${formatMonthLabel(currentMonthDate)} 排班，共 ${dates.length} 個平日`;
 }
 
+function buildFallbackHoroscopeEntries(date = new Date()) {
+  const seed = Number(formatDate(date).replaceAll('-', ''));
+  return ZODIAC_SIGNS.map((sign, index) => ({
+    ...sign,
+    summary: FALLBACK_HOROSCOPES[(seed + index) % FALLBACK_HOROSCOPES.length],
+    sourceName: '本機預覽',
+    sourceUrl: '',
+    date: formatDate(date)
+  }));
+}
+
+function normalizeHoroscopeRows(rows = []) {
+  const byKey = new Map(rows.map(row => [row.sign, row]));
+  return ZODIAC_SIGNS.map((sign, index) => {
+    const row = byKey.get(sign.key);
+    return {
+      ...sign,
+      summary: String(row?.summary || FALLBACK_HOROSCOPES[index] || '').trim(),
+      sourceName: String(row?.source_name || row?.sourceName || '').trim(),
+      sourceUrl: String(row?.source_url || row?.sourceUrl || '').trim(),
+      date: row?.date || formatDate(new Date())
+    };
+  }).filter(item => item.summary);
+}
+
+async function loadDailyHoroscopes() {
+  horoscopeEntries = buildFallbackHoroscopeEntries();
+  activeHoroscopeIndex = 0;
+
+  const client = getSupabaseClient();
+  if (!client) return;
+
+  try {
+    const today = formatDate(new Date());
+    const { data: rows, error } = await client
+      .from(HOROSCOPE_TABLE)
+      .select('date, sign, sign_name, summary, source_name, source_url, display_order')
+      .eq('date', today)
+      .order('display_order', { ascending: true });
+    if (error) throw error;
+    if (Array.isArray(rows) && rows.length) {
+      horoscopeEntries = normalizeHoroscopeRows(rows);
+    }
+  } catch (err) {
+    // 星座資料是加分功能，失敗時保留本機預覽內容，不影響排班。
+  }
+}
+
+function getActiveHoroscope() {
+  if (!horoscopeEntries.length) horoscopeEntries = buildFallbackHoroscopeEntries();
+  activeHoroscopeIndex = activeHoroscopeIndex % horoscopeEntries.length;
+  return horoscopeEntries[activeHoroscopeIndex];
+}
+
+function renderFortuneCard() {
+  const card = document.getElementById('fortuneCard');
+  if (!card) return;
+  const item = getActiveHoroscope();
+  const sourceMarkup = item.sourceUrl
+    ? `<a class="fortune-source" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener">來源：${escapeHtml(item.sourceName || '查看原文')}</a>`
+    : `<span class="fortune-source muted">${escapeHtml(item.sourceName || '等待同步真實來源')}</span>`;
+  const dots = horoscopeEntries.map((entry, index) => `
+    <button class="fortune-dot ${index === activeHoroscopeIndex ? 'active' : ''}" type="button" onclick="setHoroscopeIndex(${index})" aria-label="查看 ${escapeHtml(entry.name)}"></button>
+  `).join('');
+
+  card.innerHTML = `
+    <div class="fortune-orbit" aria-hidden="true">
+      <div class="fortune-icon">${escapeHtml(item.icon)}</div>
+      <span class="fortune-mini-label">${escapeHtml(item.english || item.key)}</span>
+    </div>
+    <div class="fortune-copy">
+      <div class="fortune-topline">
+        <span class="fortune-kicker">今日星座運勢</span>
+        <span class="fortune-date">${formatLongDate(new Date())}</span>
+      </div>
+      <span class="fortune-sign">${escapeHtml(item.name)}</span>
+      <span class="fortune-text">${escapeHtml(item.summary)}</span>
+      <div class="fortune-meta">
+        ${sourceMarkup}
+        <div class="fortune-controls">
+          <button class="fortune-step" type="button" onclick="stepHoroscope(-1)" aria-label="上一個星座">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 18-6-6 6-6"></path>
+            </svg>
+          </button>
+          <div class="fortune-dots" aria-label="星座輪播進度">${dots}</div>
+          <button class="fortune-step" type="button" onclick="stepHoroscope(1)" aria-label="下一個星座">
+            <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m9 18 6-6-6-6"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function stepHoroscope(delta) {
+  const total = horoscopeEntries.length || 1;
+  activeHoroscopeIndex = (activeHoroscopeIndex + delta + total) % total;
+  renderFortuneCard();
+  startHoroscopeCarousel();
+}
+
+function setHoroscopeIndex(index) {
+  activeHoroscopeIndex = index;
+  renderFortuneCard();
+  startHoroscopeCarousel();
+}
+
+function startHoroscopeCarousel() {
+  clearInterval(horoscopeTimer);
+  if (horoscopeEntries.length <= 1) return;
+  horoscopeTimer = setInterval(() => {
+    activeHoroscopeIndex = (activeHoroscopeIndex + 1) % horoscopeEntries.length;
+    renderFortuneCard();
+  }, 5000);
+}
+
 function isToday(d) {
   const now = new Date();
   return d.toDateString() === now.toDateString();
@@ -2733,14 +3375,10 @@ function editSubtitle() {
 // ─── Members Bar ───
 function renderMembersBar() {
   const bar = document.getElementById('membersBar');
-  const toggle = document.getElementById('membersToggle');
   const countText = document.getElementById('memberCountText');
+  if (!bar) return;
   bar.innerHTML = '';
-  bar.classList.toggle('active', membersPanelOpen);
-  if (toggle) {
-    toggle.classList.toggle('active', membersPanelOpen);
-    toggle.setAttribute('aria-expanded', membersPanelOpen ? 'true' : 'false');
-  }
+  bar.classList.add('active');
   if (countText) countText.textContent = `(${data.members.length})`;
 
   data.members.forEach(m => {
@@ -2768,8 +3406,32 @@ function renderMembersBar() {
 }
 
 function toggleMembersPanel() {
-  membersPanelOpen = !membersPanelOpen;
+  manageDrawerOpen = true;
+  membersPanelOpen = true;
+  syncManageDrawer();
   renderMembersBar();
+}
+
+function syncManageDrawer() {
+  const drawer = document.getElementById('manageDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  const toggle = document.getElementById('manageDrawerToggle');
+  if (!drawer || !overlay || !toggle) return;
+  drawer.classList.toggle('active', manageDrawerOpen);
+  overlay.classList.toggle('active', manageDrawerOpen);
+  toggle.classList.toggle('active', manageDrawerOpen);
+  toggle.setAttribute('aria-expanded', manageDrawerOpen ? 'true' : 'false');
+  drawer.setAttribute('aria-hidden', manageDrawerOpen ? 'false' : 'true');
+}
+
+function toggleManageDrawer() {
+  manageDrawerOpen = !manageDrawerOpen;
+  syncManageDrawer();
+}
+
+function closeManageDrawer() {
+  manageDrawerOpen = false;
+  syncManageDrawer();
 }
 
 function removeMember(name) {
@@ -3116,13 +3778,6 @@ function renderDutyOverview() {
           </button>
           <h2>工作內容</h2>
         </div>
-        <button class="edit-work-btn" type="button" onclick="openEditWorkTasks()">
-          <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 20h9"></path>
-            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
-          </svg>
-          <span>編輯</span>
-        </button>
       </div>
       ${bodyHtml}
     </section>
@@ -3262,7 +3917,6 @@ function renderSchedule() {
   getMonthSchedule(currentMonthDate);
   syncDateControls();
   renderPreviewSwitch();
-  renderDutyOverview();
   document.getElementById('previewNote').textContent = getPreviewNote(dates);
 
   const scheduleEl = document.getElementById('schedule');
@@ -3702,6 +4356,7 @@ function closeModal() {
 }
 
 function openModal() {
+  closeManageDrawer();
   const overlay = document.getElementById('modalOverlay');
   overlay.classList.add('active');
   setTimeout(() => {
@@ -3712,6 +4367,7 @@ function openModal() {
 
 function resetAll() {
   if (confirm('確定要重置所有資料（包含成員、請假紀錄）嗎？')) {
+    closeManageDrawer();
     localStorage.removeItem(STORAGE_KEY);
     data = JSON.parse(JSON.stringify(DEFAULT_DATA));
     data.updatedAt = Date.now();
@@ -3724,6 +4380,8 @@ function renderAll() {
   renderTitle();
   renderSubtitle();
   renderMembersBar();
+  syncManageDrawer();
+  renderFortuneCard();
   renderDutyOverview();
   renderSchedule();
   renderStats();
@@ -3738,6 +4396,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
     closeDatePicker();
+    closeManageDrawer();
   }
 });
 
@@ -3750,7 +4409,9 @@ document.addEventListener('click', (e) => {
 // Init
 async function initApp() {
   await pullRemoteData();
+  await loadDailyHoroscopes();
   renderAll();
+  startHoroscopeCarousel();
   if (SYNC_ENABLED && syncReady && remoteDataWasEmpty) {
     queueRemoteSave();
   }
